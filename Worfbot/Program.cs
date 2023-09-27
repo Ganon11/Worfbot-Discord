@@ -20,7 +20,22 @@ public class Program
       _client.Ready += Client_Ready;
       _client.SlashCommandExecuted += SlashCommandHandler;
 
-      var token = File.ReadAllText("token.txt");
+      string token;
+      if (File.Exists("token.txt"))
+      {
+         token = File.ReadAllText("token.txt");
+      }
+      else
+      {
+         var secret = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
+         if (secret == null)
+         {
+            System.Console.Error.WriteLine("Could not find bot token");
+            return;
+         }
+
+         token = secret;
+      }
 
       await _client.LoginAsync(TokenType.Bot, token);
       await _client.StartAsync();
