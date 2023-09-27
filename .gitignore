@@ -475,3 +475,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Bot Token File
+token.txt
+
+# VSCode Specific
+.vscode/
