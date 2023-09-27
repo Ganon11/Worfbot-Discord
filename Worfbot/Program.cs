@@ -53,8 +53,8 @@ public class Program
    {
       var globalCommand = new SlashCommandBuilder()
          .WithName("honor")
-         .WithDescription("Checks whether the given term is honorable.")
-         .AddOption("term", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
+         .WithDescription("Checks whether the given topic is honorable.")
+         .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
 
       try {
          await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
@@ -108,20 +108,21 @@ public class Program
          return;
       }
 
-      var term = option.Value.ToString();
-      if (term == null)
+      var topic = option.Value.ToString();
+      if (topic == null)
       {
          return;
       }
 
-      var honor = DetermineHonor(term);
+      Console.WriteLine($"{command.User.Username} requested honor status of topic \"{topic}\"");
+      var honor = DetermineHonor(topic);
       if (honor)
       {
-         await command.RespondAsync($"{term} has honor.");
+         await command.RespondAsync($"{topic} has honor.");
       }
       else
       {
-         await command.RespondAsync($"{term} is without honor.");
+         await command.RespondAsync($"{topic} is without honor.");
       }
 
       return;
