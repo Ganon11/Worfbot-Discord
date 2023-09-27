@@ -53,7 +53,6 @@ public class Program
 
    private async Task SlashCommandHandler(SocketSlashCommand command)
    {
-      await command.RespondAsync($"You executed {command.Data.Name}.");
       switch (command.Data.Name)
       {
          case "honor":
