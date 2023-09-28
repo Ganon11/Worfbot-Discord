@@ -1,16 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
-using System.Linq;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
-using Inflector;
 using Newtonsoft.Json;
 
 namespace Ganon11.Worfbot
 {
-   public class Program
+    public class Program
    {
       private readonly IConfiguration _configuration;
       private readonly IServiceProvider _serviceProvider;
@@ -22,7 +20,13 @@ namespace Ganon11.Worfbot
             .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
             .Build();
 
+         var discordConfig = new DiscordSocketConfig()
+         {
+            GatewayIntents = GatewayIntents.None
+         };
+
          var collection = new ServiceCollection()
+            .AddSingleton(discordConfig)
             .AddSingleton(_configuration)
             .AddSingleton<DiscordSocketClient>();
 
