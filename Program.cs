@@ -6,7 +6,6 @@ using Discord.Net;
 using Discord.WebSocket;
 using Inflector;
 using Newtonsoft.Json;
-using Npgsql;
 
 namespace Ganon11.Worfbot
 {
@@ -104,97 +103,10 @@ namespace Ganon11.Worfbot
 
       private static char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
 
-      public enum HonorStatus
+      private  async Task<bool> DetermineHonor(string topic)
       {
-         Dishonorable = 0,
-         Honorable = 1,
-         Unknown = 2
-      }
-
-      private NpgsqlConnection ConnectToDatabase()
-      {
-         var username = _configuration["USERNAME"];
-         var password = _configuration["PASSWORD"];
-         var host = _configuration["HOST"];
-         var port = _configuration["PORT"];
-         var name = _configuration["NAME"];
-
-         var connString = $"Host={host};Username={username};Password={password};Database={name};SSL Mode=Disable";
-
-         var conn = new NpgsqlConnection(connString);
-
-         return conn;
-      }
-
-      private static async Task<HonorStatus> DetermineHonorFromDatabase(string topic)
-      {
-         await using var conn = ConnectToDatabase();
-         await conn.OpenAsync();
-
-         await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
-         {
-            Parameters =
-            {
-               new() { Value = topic }
-            }
-         };
-
-         var result = await selectCommand.ExecuteScalarAsync();
-         if (result == null)
-         {
-            return HonorStatus.Unknown;
-         }
-
-         return (bool)result ? HonorStatus.Honorable : HonorStatus.Dishonorable;
-      }
-
-      private static async Task SetHonorInDatabase(string topic, bool status)
-      {
-         await using var conn = ConnectToDatabase();
-         await conn.OpenAsync();
-
-         await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
-         {
-            Parameters = 
-            {
-               new() { Value = topic }
-            }
-         };
-
-         var result = await selectCommand.ExecuteScalarAsync();
-         if (result == null)
-         {
-            // Insert new row
-            await using var insertCommand = new NpgsqlCommand("INSERT INTO honorable(topic, status) VALUES (($1), ($2))", conn)
-            {
-               Parameters =
-               {
-                  new() { Value = topic },
-                  new() { Value = status }
-               }
-            };
-
-            await insertCommand.ExecuteNonQueryAsync();
-         }
-         else
-         {
-            // Update existing row
-            await using var updateCommand = new NpgsqlCommand("UPDATE honorable SET status = ($2) WHERE topic = ($1)", conn)
-            {
-               Parameters =
-               {
-                  new() { Value = topic },
-                  new() { Value = status }
-               }
-            };
-
-            await updateCommand.ExecuteNonQueryAsync();
-         }
-      }
-
-      private static async Task<bool> DetermineHonor(string topic)
-      {
-         var databaseStatus = await DetermineHonorFromDatabase(topic);
+         var database = new WorfbotDatabase(_configuration);
+         var databaseStatus = await database.DetermineHonorFromDatabase(topic);
          if (databaseStatus != HonorStatus.Unknown)
          {
             return databaseStatus == HonorStatus.Honorable;
@@ -209,7 +121,7 @@ namespace Ganon11.Worfbot
          return false;
       }
 
-      private bool IsPlural(string topic)
+      private static bool IsPlural(string topic)
       {
          Console.WriteLine($"Checking pluralization of {topic}");
          var inflector = new Inflector.Inflector(new CultureInfo("en"));
@@ -281,7 +193,8 @@ namespace Ganon11.Worfbot
             return;
          }
 
-         await SetHonorInDatabase(topic, status);
+         var database = new WorfbotDatabase(_configuration);
+         await database.SetHonorInDatabase(topic, status);
 
          await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
          return;
