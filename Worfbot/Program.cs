@@ -52,13 +52,20 @@ public class Program
 
    private async Task Client_Ready()
    {
-      var globalCommand = new SlashCommandBuilder()
+      var honorCommand = new SlashCommandBuilder()
          .WithName("honor")
          .WithDescription("Checks whether the given topic is honorable.")
          .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
 
+      var setHonorCommand = new SlashCommandBuilder()
+         .WithName("set-honor")
+         .WithDescription("Informs Worfbot of the honorability of the topic.")
+         .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to set", isRequired: true)
+         .AddOption("status", ApplicationCommandOptionType.Boolean, "True if the topic is honorable, false otherwise", isRequired: true);
+
       try {
-         await _client.CreateGlobalApplicationCommandAsync(globalCommand.Build());
+         await _client.CreateGlobalApplicationCommandAsync(honorCommand.Build());
+         await _client.CreateGlobalApplicationCommandAsync(setHonorCommand.Build());
       }
       catch (HttpException ex)
       {
@@ -73,6 +80,9 @@ public class Program
       {
          case "honor":
             await HandleHonorCommand(command);
+            break;
+         case "set-honor":
+            await HandleSetHonorCommand(command);
             break;
       }
    }
@@ -97,7 +107,7 @@ public class Program
       Unknown = 2
    }
 
-   private static async Task<HonorStatus> CheckDatabase(string term)
+   private static NpgsqlConnection ConnectToDatabase()
    {
       var username = Environment.GetEnvironmentVariable("DATABASE_USERNAME");
       var password = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
@@ -107,18 +117,25 @@ public class Program
 
       var connString = $"Host={host};Username={username};Password={password};Database={name};SSL Mode=Disable";
 
-      await using var conn = new NpgsqlConnection(connString);
+      var conn = new NpgsqlConnection(connString);
+
+      return conn;
+   }
+
+   private static async Task<HonorStatus> DetermineHonorFromDatabase(string topic)
+   {
+      await using var conn = ConnectToDatabase();
       await conn.OpenAsync();
 
-      await using var cmd = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
+      await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
       {
          Parameters =
          {
-            new() { Value = term }
+            new() { Value = topic }
          }
       };
 
-      var result = await cmd.ExecuteScalarAsync();
+      var result = await selectCommand.ExecuteScalarAsync();
       if (result == null)
       {
          return HonorStatus.Unknown;
@@ -127,15 +144,59 @@ public class Program
       return (bool)result ? HonorStatus.Honorable : HonorStatus.Dishonorable;
    }
 
-   private static async Task<bool> DetermineHonor(string term)
+   private static async Task SetHonorInDatabase(string topic, bool status)
    {
-      var databaseStatus = await CheckDatabase(term);
+      await using var conn = ConnectToDatabase();
+      await conn.OpenAsync();
+
+      await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
+      {
+         Parameters = 
+         {
+            new() { Value = topic }
+         }
+      };
+
+      var result = await selectCommand.ExecuteScalarAsync();
+      if (result == null)
+      {
+         // Insert new row
+         await using var insertCommand = new NpgsqlCommand("INSERT INTO honorable(topic, status) VALUES (($1), ($2))", conn)
+         {
+            Parameters =
+            {
+               new() { Value = topic },
+               new() { Value = status }
+            }
+         };
+
+         await insertCommand.ExecuteNonQueryAsync();
+      }
+      else
+      {
+         // Update existing row
+         await using var updateCommand = new NpgsqlCommand("UPDATE honorable SET status = ($2) WHERE topic = ($1)", conn)
+         {
+            Parameters =
+            {
+               new() { Value = topic },
+               new() { Value = status }
+            }
+         };
+
+         await updateCommand.ExecuteNonQueryAsync();
+      }
+   }
+
+   private static async Task<bool> DetermineHonor(string topic)
+   {
+      var databaseStatus = await DetermineHonorFromDatabase(topic);
       if (databaseStatus != HonorStatus.Unknown)
       {
          return databaseStatus == HonorStatus.Honorable;
       }
 
-      var md5 = CreateMD5(term);
+      var md5 = CreateMD5(topic);
       if (HONORABLE_SUFFIXES.Contains(md5.Last()))
       {
          return true;
@@ -169,6 +230,43 @@ public class Program
          await command.RespondAsync($"{topic} is without honor.");
       }
 
+      return;
+   }
+
+   private async Task HandleSetHonorCommand(SocketSlashCommand command)
+   {
+      var topicOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("topic"));
+      if (topicOption == null)
+      {
+         return;
+      }
+
+      var statusOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("status"));
+      if (statusOption == null)
+      {
+         return;
+      }
+
+      var topic = topicOption.Value.ToString();
+      if (topic == null)
+      {
+         return;
+      }
+
+      var statusString = statusOption.Value.ToString();
+      if (statusString == null)
+      {
+         return;
+      }
+
+      if (!bool.TryParse(statusString, out var status))
+      {
+         return;
+      }
+
+      await SetHonorInDatabase(topic, status);
+
+      await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
       return;
    }
 }
