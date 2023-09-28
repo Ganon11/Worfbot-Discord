@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Globalization;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using Pluralize.NET;
 
 namespace Ganon11.Worfbot
 {
@@ -111,12 +111,8 @@ namespace Ganon11.Worfbot
       private static bool IsPlural(string topic)
       {
          Console.WriteLine($"Checking pluralization of {topic}");
-         var inflector = new Inflector.Inflector(new CultureInfo("en"));
-         var pluralizedTopic = inflector.Pluralize(topic);
-
-         Console.WriteLine($"{topic} pluralized is {pluralizedTopic}");
-
-         return topic.Equals(pluralizedTopic, StringComparison.CurrentCultureIgnoreCase);
+         IPluralize pluralizer = new Pluralizer();
+         return pluralizer.IsPlural(topic);
       }
 
       private async Task HandleHonorCommand(SocketSlashCommand command)
