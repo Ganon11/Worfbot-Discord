@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
+using System.Linq;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
@@ -28,14 +29,19 @@ namespace Ganon11.Worfbot
          _serviceProvider = collection.BuildServiceProvider();
       }
 
-      public static Task Main(string[] args) => new Program().MainAsync();
+      public static Task Main(string[] args) => new Program().MainAsync(args);
 
-      public async Task MainAsync()
+      public async Task MainAsync(string[] args)
       {
+         if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
+         {
+            await UpdateSlashCommands();
+            return;
+         }
+
          var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
 
          client.Log += Log;
-         client.Ready += Client_Ready;
          client.SlashCommandExecuted += SlashCommandHandler;
 
          await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
@@ -44,20 +50,23 @@ namespace Ganon11.Worfbot
          await Task.Delay(-1);
       }
 
-      private Task Log(LogMessage msg)
-      {
-         Console.WriteLine(msg.ToString());
-         return Task.CompletedTask;
-      }
-
-      private async Task Client_Ready()
+      private async Task UpdateSlashCommands()
       {
          var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
-
          var honorCommand = new SlashCommandBuilder()
             .WithName("honor")
             .WithDescription("Checks whether the given topic is honorable.")
             .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
+
+         try
+         {
+            await client.CreateGlobalApplicationCommandAsync(honorCommand.Build());
+         }
+         catch (HttpException ex)
+         {
+            var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
+            Console.WriteLine(json);
+         }
 
          var setHonorCommand = new SlashCommandBuilder()
             .WithName("set-honor")
@@ -67,7 +76,6 @@ namespace Ganon11.Worfbot
 
          try
          {
-            await client.CreateGlobalApplicationCommandAsync(honorCommand.Build());
             await client.CreateGlobalApplicationCommandAsync(setHonorCommand.Build());
          }
          catch (HttpException ex)
@@ -75,6 +83,12 @@ namespace Ganon11.Worfbot
             var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
             Console.WriteLine(json);
          }
+      }
+
+      private Task Log(LogMessage msg)
+      {
+         Console.WriteLine(msg.ToString());
+         return Task.CompletedTask;
       }
 
       private async Task SlashCommandHandler(SocketSlashCommand command)
