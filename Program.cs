@@ -111,13 +111,13 @@ namespace Ganon11.Worfbot
          Unknown = 2
       }
 
-      private static NpgsqlConnection ConnectToDatabase()
+      private NpgsqlConnection ConnectToDatabase()
       {
-         var username = Environment.GetEnvironmentVariable("DATABASE_USERNAME");
-         var password = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
-         var host = Environment.GetEnvironmentVariable("DATABASE_HOST");
-         var port = Environment.GetEnvironmentVariable("DATABASE_PORT");
-         var name = Environment.GetEnvironmentVariable("DATABASE_NAME");
+         var username = _configuration["USERNAME"];
+         var password = _configuration["PASSWORD"];
+         var host = _configuration["HOST"];
+         var port = _configuration["PORT"];
+         var name = _configuration["NAME"];
 
          var connString = $"Host={host};Username={username};Password={password};Database={name};SSL Mode=Disable";
 
