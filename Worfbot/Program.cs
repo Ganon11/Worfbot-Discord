@@ -2,6 +2,7 @@
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using Npgsql;
 
 public class Program
 {
@@ -89,8 +90,51 @@ public class Program
 
    private static char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
 
-   private static bool DetermineHonor(string term)
+   public enum HonorStatus
    {
+      Dishonorable = 0,
+      Honorable = 1,
+      Unknown = 2
+   }
+
+   private static async Task<HonorStatus> CheckDatabase(string term)
+   {
+      var username = Environment.GetEnvironmentVariable("DATABASE_USERNAME");
+      var password = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
+      var host = Environment.GetEnvironmentVariable("DATABASE_HOST");
+      var port = Environment.GetEnvironmentVariable("DATABASE_PORT");
+      var name = Environment.GetEnvironmentVariable("DATABASE_NAME");
+
+      var connString = $"Host={host};Username={username};Password={password};Database={name};SSL Mode=Disable";
+
+      await using var conn = new NpgsqlConnection(connString);
+      await conn.OpenAsync();
+
+      await using var cmd = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
+      {
+         Parameters =
+         {
+            new() { Value = term }
+         }
+      };
+
+      var result = await cmd.ExecuteScalarAsync();
+      if (result == null)
+      {
+         return HonorStatus.Unknown;
+      }
+
+      return (bool)result ? HonorStatus.Honorable : HonorStatus.Dishonorable;
+   }
+
+   private static async Task<bool> DetermineHonor(string term)
+   {
+      var databaseStatus = await CheckDatabase(term);
+      if (databaseStatus != HonorStatus.Unknown)
+      {
+         return databaseStatus == HonorStatus.Honorable;
+      }
+
       var md5 = CreateMD5(term);
       if (HONORABLE_SUFFIXES.Contains(md5.Last()))
       {
@@ -115,7 +159,7 @@ public class Program
       }
 
       Console.WriteLine($"{command.User.Username} requested honor status of topic \"{topic}\"");
-      var honor = DetermineHonor(topic);
+      var honor = await DetermineHonor(topic);
       if (honor)
       {
          await command.RespondAsync($"{topic} has honor.");
