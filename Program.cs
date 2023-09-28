@@ -90,37 +90,6 @@ namespace Ganon11.Worfbot
          }
       }
 
-      private static string CreateMD5(string input)
-      {
-         using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
-         {
-            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
-            byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-            return Convert.ToHexString(hashBytes);
-         }
-      }
-
-      private static char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
-
-      private  async Task<bool> DetermineHonor(string topic)
-      {
-         var database = new WorfbotDatabase(_configuration);
-         var databaseStatus = await database.DetermineHonorFromDatabase(topic);
-         if (databaseStatus != HonorStatus.Unknown)
-         {
-            return databaseStatus == HonorStatus.Honorable;
-         }
-
-         var md5 = CreateMD5(topic);
-         if (HONORABLE_SUFFIXES.Contains(md5.Last()))
-         {
-            return true;
-         }
-
-         return false;
-      }
-
       private static bool IsPlural(string topic)
       {
          Console.WriteLine($"Checking pluralization of {topic}");
@@ -147,7 +116,7 @@ namespace Ganon11.Worfbot
          }
 
          Console.WriteLine($"{command.User.Username} requested honor status of topic \"{topic}\"");
-         var honor = await DetermineHonor(topic);
+         var honor = await HonorUtilities.DetermineHonor(topic, _configuration);
          if (honor)
          {
             var verb = IsPlural(topic) ? "have" : "has";
@@ -193,8 +162,7 @@ namespace Ganon11.Worfbot
             return;
          }
 
-         var database = new WorfbotDatabase(_configuration);
-         await database.SetHonorInDatabase(topic, status);
+         await HonorUtilities.SetHonor(topic, status, _configuration);
 
          await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
          return;
