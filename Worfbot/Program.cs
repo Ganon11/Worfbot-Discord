@@ -1,6 +1,8 @@
-﻿using Discord;
+﻿using System.Globalization;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Inflector;
 using Newtonsoft.Json;
 using Npgsql;
 
@@ -205,6 +207,17 @@ public class Program
       return false;
    }
 
+   private bool IsPlural(string topic)
+   {
+      Console.WriteLine($"Checking pluralization of {topic}");
+      var inflector = new Inflector.Inflector(new CultureInfo("en"));
+      var pluralizedTopic = inflector.Pluralize(topic);
+
+      Console.WriteLine($"{topic} pluralized is {pluralizedTopic}");
+
+      return topic.Equals(pluralizedTopic, StringComparison.CurrentCultureIgnoreCase);
+   }
+
    private async Task HandleHonorCommand(SocketSlashCommand command)
    {
       var option = command.Data.Options.FirstOrDefault();
@@ -223,11 +236,13 @@ public class Program
       var honor = await DetermineHonor(topic);
       if (honor)
       {
-         await command.RespondAsync($"{topic} has honor.");
+         var verb = IsPlural(topic) ? "have" : "has";
+         await command.RespondAsync($"{topic} {verb} honor.");
       }
       else
       {
-         await command.RespondAsync($"{topic} is without honor.");
+         var verb = IsPlural(topic) ? "are" : "is";
+         await command.RespondAsync($"{topic} {verb} without honor.");
       }
 
       return;

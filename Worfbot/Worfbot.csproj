@@ -15,4 +15,8 @@
     <PackageReference Include="npgsql" Version="6.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Inflector.NetStandard" Version="1.2.2" />
+  </ItemGroup>
+
 </Project>
