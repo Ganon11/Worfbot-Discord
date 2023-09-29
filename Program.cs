@@ -18,6 +18,7 @@ namespace Ganon11.Worfbot
       _configuration = new ConfigurationBuilder()
          .AddEnvironmentVariables(prefix: "DATABASE_")
          .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
+         .SetBasePath(Directory.GetCurrentDirectory())
          .AddJsonFile("appsettings.json", optional: true)
          .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
          .Build();
@@ -62,10 +63,8 @@ namespace Ganon11.Worfbot
       if (Enum.TryParse(typeof(LogSeverity), _configuration["Logging:Severity"], out var parsedValue) && parsedValue != null)
       {
         severity = (LogSeverity)parsedValue;
-        Console.WriteLine($"Parsed severity of {severity}");
       }
 
-      Console.WriteLine($"LogLevel: {severity}, Message Level: {msg.Severity}");
       if (msg.Severity <= severity)
       {
         Console.WriteLine(msg.ToString());
