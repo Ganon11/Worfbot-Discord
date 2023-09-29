@@ -22,8 +22,6 @@ namespace Ganon11.Worfbot
          .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
          .Build();
 
-      Console.WriteLine(((IConfigurationRoot)_configuration).GetDebugView());
-
       var discordConfig = new DiscordSocketConfig()
       {
         GatewayIntents = GatewayIntents.None
