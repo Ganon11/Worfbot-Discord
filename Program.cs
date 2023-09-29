@@ -192,6 +192,9 @@ namespace Ganon11.Worfbot
         return;
       }
 
+      LogMessage message = new(LogSeverity.Info, nameof(HandleSetHonorCommand), $"{command.User.Username} setting honor status of topic \"{topic}\" to {status}");
+      await Log(message);
+
       await HonorUtilities.SetHonor(topic, status, _configuration);
 
       await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
