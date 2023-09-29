@@ -22,6 +22,8 @@ namespace Ganon11.Worfbot
          .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
          .Build();
 
+      Console.WriteLine(((IConfigurationRoot)_configuration).GetDebugView());
+
       var discordConfig = new DiscordSocketConfig()
       {
         GatewayIntents = GatewayIntents.None
@@ -62,8 +64,10 @@ namespace Ganon11.Worfbot
       if (Enum.TryParse(typeof(LogSeverity), _configuration["Logging:Severity"], out var parsedValue) && parsedValue != null)
       {
         severity = (LogSeverity)parsedValue;
+        Console.WriteLine($"Parsed severity of {severity}");
       }
 
+      Console.WriteLine($"LogLevel: {severity}, Message Level: {msg.Severity}");
       if (msg.Severity <= severity)
       {
         Console.WriteLine(msg.ToString());
@@ -87,7 +91,7 @@ namespace Ganon11.Worfbot
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
-        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await Log(message);
       }
 
@@ -104,7 +108,7 @@ namespace Ganon11.Worfbot
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
-        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await Log(message);
       }
     }
