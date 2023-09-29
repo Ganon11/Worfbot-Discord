@@ -27,12 +27,7 @@ namespace Ganon11.Worfbot
       }
 
       var md5 = CreateMD5(topic);
-      if (HONORABLE_SUFFIXES.Contains(md5.Last()))
-      {
-        return true;
-      }
-
-      return false;
+      return HONORABLE_SUFFIXES.Contains(md5.Last());
     }
 
     public static async Task SetHonor(string topic, bool status, IConfiguration configuration)
