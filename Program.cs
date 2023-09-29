@@ -18,6 +18,8 @@ namespace Ganon11.Worfbot
          _configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables(prefix: "DATABASE_")
             .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), true)
             .Build();
 
          var discordConfig = new DiscordSocketConfig()
