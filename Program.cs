@@ -56,6 +56,12 @@ namespace Ganon11.Worfbot
       await Task.Delay(-1);
     }
 
+    private Task Log(LogMessage msg)
+    {
+      Console.WriteLine(msg.ToString());
+      return Task.CompletedTask;
+    }
+
     private async Task UpdateSlashCommands()
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
@@ -71,7 +77,8 @@ namespace Ganon11.Worfbot
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
-        Console.WriteLine(json);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json);
+        await Log(message);
       }
 
       var setHonorCommand = new SlashCommandBuilder()
@@ -87,14 +94,9 @@ namespace Ganon11.Worfbot
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
-        Console.WriteLine(json);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json);
+        await Log(message);
       }
-    }
-
-    private Task Log(LogMessage msg)
-    {
-      Console.WriteLine(msg.ToString());
-      return Task.CompletedTask;
     }
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -110,9 +112,10 @@ namespace Ganon11.Worfbot
       }
     }
 
-    private static bool IsPlural(string topic)
+    private async Task<bool> IsPlural(string topic)
     {
-      Console.WriteLine($"Checking pluralization of {topic}");
+      LogMessage message = new(LogSeverity.Debug, nameof(IsPlural), $"Checking pluralization of {topic}");
+      await Log(message);
       IPluralize pluralizer = new Pluralizer();
       return pluralizer.IsPlural(topic);
     }
@@ -131,16 +134,17 @@ namespace Ganon11.Worfbot
         return;
       }
 
-      Console.WriteLine($"{command.User.Username} requested honor status of topic \"{topic}\"");
+      LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\"");
+      await Log(message);
       var honor = await HonorUtilities.DetermineHonor(topic, _configuration);
       if (honor)
       {
-        var verb = IsPlural(topic) ? "have" : "has";
+        var verb = await IsPlural(topic) ? "have" : "has";
         await command.RespondAsync($"{topic} {verb} honor.");
       }
       else
       {
-        var verb = IsPlural(topic) ? "are" : "is";
+        var verb = await IsPlural(topic) ? "are" : "is";
         await command.RespondAsync($"{topic} {verb} without honor.");
       }
 
