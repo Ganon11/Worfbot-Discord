@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-
 using Npgsql;
 
 namespace Ganon11.Worfbot

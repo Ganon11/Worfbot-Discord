@@ -1,12 +1,9 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Newtonsoft.Json;
-
 using Pluralize.NET;
 
 namespace Ganon11.Worfbot
