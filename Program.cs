@@ -58,7 +58,17 @@ namespace Ganon11.Worfbot
 
     private Task Log(LogMessage msg)
     {
-      Console.WriteLine(msg.ToString());
+      LogSeverity severity = LogSeverity.Error;
+      if (Enum.TryParse(typeof(LogSeverity), _configuration["Logging:Severity"], out var parsedValue) && parsedValue != null)
+      {
+        severity = (LogSeverity)parsedValue;
+      }
+
+      if (msg.Severity <= severity)
+      {
+        Console.WriteLine(msg.ToString());
+      }
+      
       return Task.CompletedTask;
     }
 
