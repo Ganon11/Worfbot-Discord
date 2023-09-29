@@ -44,9 +44,9 @@ namespace Ganon11.Worfbot
       await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
       {
         Parameters =
-            {
-               new() { Value = topic }
-            }
+        {
+            new() { Value = topic }
+        }
       };
 
       var result = await selectCommand.ExecuteScalarAsync();
@@ -66,9 +66,9 @@ namespace Ganon11.Worfbot
       await using var selectCommand = new NpgsqlCommand("SELECT status FROM honorable WHERE topic = ($1)", conn)
       {
         Parameters =
-            {
-               new() { Value = topic }
-            }
+        {
+          new() { Value = topic }
+        }
       };
 
       var result = await selectCommand.ExecuteScalarAsync();
@@ -78,10 +78,10 @@ namespace Ganon11.Worfbot
         await using var insertCommand = new NpgsqlCommand("INSERT INTO honorable(topic, status) VALUES (($1), ($2))", conn)
         {
           Parameters =
-               {
-                  new() { Value = topic },
-                  new() { Value = status }
-               }
+          {
+            new() { Value = topic },
+            new() { Value = status }
+          }
         };
 
         await insertCommand.ExecuteNonQueryAsync();
@@ -92,10 +92,10 @@ namespace Ganon11.Worfbot
         await using var updateCommand = new NpgsqlCommand("UPDATE honorable SET status = ($2) WHERE topic = ($1)", conn)
         {
           Parameters =
-               {
-                  new() { Value = topic },
-                  new() { Value = status }
-               }
+          {
+            new() { Value = topic },
+            new() { Value = status }
+          }
         };
 
         await updateCommand.ExecuteNonQueryAsync();
