@@ -16,12 +16,12 @@ namespace Ganon11.Worfbot
     public Program()
     {
       _configuration = new ConfigurationBuilder()
-         .AddEnvironmentVariables(prefix: "DATABASE_")
-         .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
-         .SetBasePath(Directory.GetCurrentDirectory())
-         .AddJsonFile("appsettings.json", optional: true)
-         .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
-         .Build();
+          .AddEnvironmentVariables(prefix: "DATABASE_")
+          .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
+          .SetBasePath(Directory.GetCurrentDirectory())
+          .AddJsonFile("appsettings.json", optional: true)
+          .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
+          .Build();
 
       var discordConfig = new DiscordSocketConfig()
       {
@@ -29,9 +29,9 @@ namespace Ganon11.Worfbot
       };
 
       var collection = new ServiceCollection()
-         .AddSingleton(discordConfig)
-         .AddSingleton(_configuration)
-         .AddSingleton<DiscordSocketClient>();
+          .AddSingleton(discordConfig)
+          .AddSingleton(_configuration)
+          .AddSingleton<DiscordSocketClient>();
 
       _serviceProvider = collection.BuildServiceProvider();
     }
@@ -77,9 +77,9 @@ namespace Ganon11.Worfbot
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
       var honorCommand = new SlashCommandBuilder()
-         .WithName("honor")
-         .WithDescription("Checks whether the given topic is honorable.")
-         .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
+          .WithName("honor")
+          .WithDescription("Checks whether the given topic is honorable.")
+          .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to determine", isRequired: true);
 
       try
       {
@@ -93,10 +93,10 @@ namespace Ganon11.Worfbot
       }
 
       var setHonorCommand = new SlashCommandBuilder()
-         .WithName("set-honor")
-         .WithDescription("Informs Worfbot of the honorability of the topic.")
-         .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to set", isRequired: true)
-         .AddOption("status", ApplicationCommandOptionType.Boolean, "True if the topic is honorable, false otherwise", isRequired: true);
+          .WithName("set-honor")
+          .WithDescription("Informs Worfbot of the honorability of the topic.")
+          .AddOption("topic", ApplicationCommandOptionType.String, "The word or phrase whose honor you want to set", isRequired: true)
+          .AddOption("status", ApplicationCommandOptionType.Boolean, "True if the topic is honorable, false otherwise", isRequired: true);
 
       try
       {

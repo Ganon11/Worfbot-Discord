@@ -45,7 +45,7 @@ namespace Ganon11.Worfbot
       {
         Parameters =
         {
-            new() { Value = topic }
+          new() { Value = topic }
         }
       };
 
@@ -74,7 +74,6 @@ namespace Ganon11.Worfbot
       var result = await selectCommand.ExecuteScalarAsync();
       if (result == null)
       {
-        // Insert new row
         await using var insertCommand = new NpgsqlCommand("INSERT INTO honorable(topic, status) VALUES (($1), ($2))", conn)
         {
           Parameters =
@@ -88,7 +87,6 @@ namespace Ganon11.Worfbot
       }
       else
       {
-        // Update existing row
         await using var updateCommand = new NpgsqlCommand("UPDATE honorable SET status = ($2) WHERE topic = ($1)", conn)
         {
           Parameters =
