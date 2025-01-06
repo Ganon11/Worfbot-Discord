@@ -133,7 +133,7 @@ namespace Ganon11.Worfbot
         return;
       }
 
-      var honor = await HonorUtilities.DetermineHonor(topic, _configuration);
+      var honor = await HonorUtilities.DetermineHonor(topic, _configuration, _logger);
       if (honor)
       {
         var verb = await IsPlural(topic) ? "have" : "has";
