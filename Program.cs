@@ -11,6 +11,7 @@ namespace Ganon11.Worfbot
   public class Program
   {
     private readonly IConfiguration _configuration;
+    private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
 
     public Program()
@@ -23,6 +24,8 @@ namespace Ganon11.Worfbot
           .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
           .Build();
 
+      _logger = new Logger(_configuration["Logging:Severity"] ?? "");
+
       var discordConfig = new DiscordSocketConfig()
       {
         GatewayIntents = GatewayIntents.None
@@ -31,6 +34,7 @@ namespace Ganon11.Worfbot
       var collection = new ServiceCollection()
           .AddSingleton(discordConfig)
           .AddSingleton(_configuration)
+          .AddSingleton(_logger)
           .AddSingleton<DiscordSocketClient>();
 
       _serviceProvider = collection.BuildServiceProvider();
@@ -48,29 +52,13 @@ namespace Ganon11.Worfbot
 
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-      client.Log += Log;
+      client.Log += _logger.Log;
       client.SlashCommandExecuted += SlashCommandHandler;
 
       await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
       await client.StartAsync();
 
       await Task.Delay(-1);
-    }
-
-    private Task Log(LogMessage msg)
-    {
-      LogSeverity severity = LogSeverity.Error;
-      if (Enum.TryParse(typeof(LogSeverity), _configuration["Logging:Severity"], out var parsedValue) && parsedValue != null)
-      {
-        severity = (LogSeverity)parsedValue;
-      }
-
-      if (msg.Severity <= severity)
-      {
-        Console.WriteLine(msg.ToString());
-      }
-      
-      return Task.CompletedTask;
     }
 
     private async Task UpdateSlashCommands()
@@ -89,7 +77,7 @@ namespace Ganon11.Worfbot
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
-        await Log(message);
+        await _logger.Log(message);
       }
 
       var setHonorCommand = new SlashCommandBuilder()
@@ -106,7 +94,7 @@ namespace Ganon11.Worfbot
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
-        await Log(message);
+        await _logger.Log(message);
       }
     }
 
@@ -126,7 +114,7 @@ namespace Ganon11.Worfbot
     private async Task<bool> IsPlural(string topic)
     {
       LogMessage message = new(LogSeverity.Debug, nameof(IsPlural), $"Checking pluralization of {topic}");
-      await Log(message);
+      await _logger.Log(message);
       IPluralize pluralizer = new Pluralizer();
       return pluralizer.IsPlural(topic);
     }
@@ -158,7 +146,7 @@ namespace Ganon11.Worfbot
       }
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\" (result is {honor})");
-      await Log(message);
+      await _logger.Log(message);
 
       return;
     }
@@ -195,7 +183,7 @@ namespace Ganon11.Worfbot
       }
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleSetHonorCommand), $"{command.User.Username} setting honor status of topic \"{topic}\" to {status}");
-      await Log(message);
+      await _logger.Log(message);
 
       await HonorUtilities.SetHonor(topic, status, _configuration);
 

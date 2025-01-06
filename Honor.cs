@@ -17,16 +17,21 @@ namespace Ganon11.Worfbot
 
     private static readonly char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
 
-    public static async Task<bool> DetermineHonor(string topic, IConfiguration configuration)
+    public static async Task<bool> DetermineHonor(string topic, IConfiguration configuration, ILogger? logger = null)
     {
       var database = new WorfbotDatabase(configuration);
       var databaseStatus = await database.DetermineHonorFromDatabase(topic);
       if (databaseStatus != HonorStatus.Unknown)
       {
+        if (logger != null)
+        {
+          await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(DetermineHonor), $"Honor determined from database"));
+        }
         return databaseStatus == HonorStatus.Honorable;
       }
 
       var md5 = CreateMD5(topic);
+      await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(DetermineHonor), $"Honor determined from MD5 hash ({md5})"));
       return HONORABLE_SUFFIXES.Contains(md5.Last());
     }
 
