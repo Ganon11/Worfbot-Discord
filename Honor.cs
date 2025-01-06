@@ -31,7 +31,10 @@ namespace Ganon11.Worfbot
       }
 
       var md5 = CreateMD5(topic);
-      await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(DetermineHonor), $"Honor determined from MD5 hash ({md5})"));
+      if (logger != null)
+      {
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(DetermineHonor), $"Honor determined from MD5 hash ({md5})"));
+      }
       return HONORABLE_SUFFIXES.Contains(md5.Last());
     }
 
