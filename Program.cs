@@ -145,8 +145,6 @@ namespace Ganon11.Worfbot
         return;
       }
 
-      LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\"");
-      await Log(message);
       var honor = await HonorUtilities.DetermineHonor(topic, _configuration);
       if (honor)
       {
@@ -158,6 +156,9 @@ namespace Ganon11.Worfbot
         var verb = await IsPlural(topic) ? "are" : "is";
         await command.RespondAsync($"{topic} {verb} without honor.");
       }
+
+      LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\" (result is {honor})");
+      await Log(message);
 
       return;
     }
