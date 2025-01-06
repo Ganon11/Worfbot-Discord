@@ -21,10 +21,10 @@ namespace Ganon11.Worfbot
 
     public WorfbotDatabase(IConfiguration configuration)
     {
-      _username = configuration["USERNAME"];
-      _password = configuration["PASSWORD"];
-      _host = configuration["HOST"];
-      _name = configuration["NAME"];
+      _username = configuration["USERNAME"] ?? "";
+      _password = configuration["PASSWORD"] ?? "";
+      _host = configuration["HOST"] ?? "";
+      _name = configuration["NAME"] ?? "";
 
       _connectionString = $"Host={_host};Username={_username};Password={_password};Database={_name};SSL Mode=Disable";
     }
