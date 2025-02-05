@@ -13,7 +13,7 @@ namespace Ganon11.Worfbot
       using (HttpClient client = new())
       {
         client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json; charset=utf-8"));
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         client.DefaultRequestHeaders.Add("User-Agent", "Worfbot-Discord");
 
         var json = await client.GetStringAsync($"https://api.openweathermap.org/data/2.5/weather?zip={zipCode}&appid={apiKey}&units=imperial");

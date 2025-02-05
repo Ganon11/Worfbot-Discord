@@ -44,16 +44,12 @@ namespace Ganon11.Worfbot
 
     public async Task MainAsync(string[] args)
     {
-      // if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
-      // {
-        await UpdateSlashCommands();
-      //   return;
-      // }
-
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
 
       client.Log += _logger.Log;
       client.SlashCommandExecuted += SlashCommandHandler;
+      // Uncomment when changing slash commands
+      //client.Ready += UpdateSlashCommands;
 
       await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
       await client.StartAsync();
@@ -64,7 +60,6 @@ namespace Ganon11.Worfbot
     private async Task UpdateSlashCommands()
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
-      await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
 
       var honorCommand = new SlashCommandBuilder()
           .WithName("honor")
@@ -73,6 +68,8 @@ namespace Ganon11.Worfbot
 
       try
       {
+        LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering honor command...");
+        await _logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(honorCommand.Build());
       }
       catch (HttpException ex)
@@ -90,6 +87,8 @@ namespace Ganon11.Worfbot
 
       try
       {
+        LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering set-honor command...");
+        await _logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(setHonorCommand.Build());
       }
       catch (HttpException ex)
@@ -106,6 +105,8 @@ namespace Ganon11.Worfbot
 
       try
       {
+        LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering weather command...");
+        await _logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(weatherCommand.Build());
       }
       catch (HttpException ex)
