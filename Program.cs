@@ -44,11 +44,11 @@ namespace Ganon11.Worfbot
 
     public async Task MainAsync(string[] args)
     {
-      if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
-      {
+      // if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
+      // {
         await UpdateSlashCommands();
-        return;
-      }
+      //   return;
+      // }
 
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
 
@@ -64,6 +64,8 @@ namespace Ganon11.Worfbot
     private async Task UpdateSlashCommands()
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
+      await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
+
       var honorCommand = new SlashCommandBuilder()
           .WithName("honor")
           .WithDescription("Checks whether the given topic is honorable.")
