@@ -96,6 +96,22 @@ namespace Ganon11.Worfbot
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await _logger.Log(message);
       }
+
+      var weatherCommand = new SlashCommandBuilder()
+          .WithName("weather")
+          .WithDescription("Asks Worfbot about the weather in a location.")
+          .AddOption("zip-code", ApplicationCommandOptionType.Number, "US ZIP code of location", isRequired: true);
+
+      try
+      {
+        await client.CreateGlobalApplicationCommandAsync(weatherCommand.Build());
+      }
+      catch (HttpException ex)
+      {
+        var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
+        await _logger.Log(message);
+      }
     }
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -107,6 +123,9 @@ namespace Ganon11.Worfbot
           break;
         case "set-honor":
           await HandleSetHonorCommand(command);
+          break;
+        case "weather":
+          await HandleWeatherCommand(command);
           break;
       }
     }
@@ -188,6 +207,29 @@ namespace Ganon11.Worfbot
       await HonorUtilities.SetHonor(topic, status, _configuration);
 
       await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
+      return;
+    }
+
+    private async Task HandleWeatherCommand(SocketSlashCommand command)
+    {
+      var option = command.Data.Options.FirstOrDefault();
+      if (option == default)
+      {
+        return;
+      }
+
+      var zipCode = option.Value.ToString();
+      if (zipCode == null)
+      {
+        return;
+      }
+
+      LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested weather for zip code \"{zipCode}\"");
+      await _logger.Log(message);
+
+      var prediction = await WeatherUtilities.CheckWeather(zipCode, _configuration);
+      await command.RespondAsync($"Weather for {prediction.name}: {prediction.weather.First().main}, {prediction.main.temp}° C (High {prediction.main.temp_max}°, Low {prediction.main.temp_min}°), feels like {prediction.main.feels_like}°");
+
       return;
     }
   }
