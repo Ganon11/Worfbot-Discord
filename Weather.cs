@@ -113,7 +113,7 @@ namespace Ganon11.Worfbot
     {
       StringBuilder stringBuilder = new();
       stringBuilder.AppendLine($"{GetWeatherEmoji(prediction.WeatherForecasts.First().Id)} {prediction.WeatherForecasts.First().Main}");
-      stringBuilder.AppendLine($"{FormatDegrees(prediction.Temps.Temperature, units)}");
+      stringBuilder.AppendLine($"🌡️ {FormatDegrees(prediction.Temps.Temperature, units)}");
       stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.Temps.High, units)}, ");
       stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.Temps.Low, units)}, ");
       stringBuilder.Append($"🍃 Feels Like {FormatDegrees(prediction.Temps.FeelsLike, units)}");
