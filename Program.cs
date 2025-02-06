@@ -259,7 +259,7 @@ namespace Ganon11.Worfbot
       //await command.RespondAsync(WeatherUtilities.FormatWeatherPrediction(prediction, units));
 
       var embedBuilder = new EmbedBuilder()
-         .WithTitle($"Weather for {prediction.name}")
+         .WithTitle($"Weather for {prediction.Location}")
          .WithDescription(WeatherUtilities.FormatWeatherPrediction(prediction, units))
          .WithCurrentTimestamp();
 

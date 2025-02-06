@@ -61,14 +61,62 @@ namespace Ganon11.Worfbot
       }
     }
 
+    private static string GetWeatherEmoji(int id)
+    {
+      // Thunderstorm
+      if (200 <= id && id <= 232)
+      {
+        return "⛈️";
+      }
+
+      // Drizzle
+      if (300 <= id && id <= 321)
+      {
+        return "☔";
+      }
+
+      // Rain
+      if (500 <= id && id <= 531)
+      {
+        return "🌧️";
+      }
+
+      // Snow
+      if (600 <= id && id <= 622)
+      {
+        return "🌨️";
+      }
+
+      // Atmosphere (???)
+      if (700 <= id && id < 781)
+      {
+        return "🌫️";
+      }
+
+      // Clear, or Clouds
+      switch (id)
+      {
+        case 800:
+          return "😎";
+        case 801:
+          return "🌤️";
+        case 802:
+          return "⛅";
+        case 803:
+        case 804:
+        default:
+          return "☁️";
+      }
+    }
+
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)
     {
-      StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.AppendLine($"{prediction.weather.First().main}");
-      stringBuilder.AppendLine($"{FormatDegrees(prediction.main.temp, units)}");
-      stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.main.temp_max, units)}, ");
-      stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.main.temp_min, units)}, ");
-      stringBuilder.Append($"🍃 Feels Like {FormatDegrees(prediction.main.feels_like, units)})");
+      StringBuilder stringBuilder = new();
+      stringBuilder.AppendLine($"{GetWeatherEmoji(prediction.WeatherForecasts.First().Id)} {prediction.WeatherForecasts.First().Main}");
+      stringBuilder.AppendLine($"{FormatDegrees(prediction.Temps.Temperature, units)}");
+      stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.Temps.High, units)}, ");
+      stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.Temps.Low, units)}, ");
+      stringBuilder.Append($"🍃 Feels Like {FormatDegrees(prediction.Temps.FeelsLike, units)}");
       return stringBuilder.ToString();
     }
   }

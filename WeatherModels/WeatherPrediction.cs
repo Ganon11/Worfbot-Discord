@@ -1,8 +1,13 @@
+using Newtonsoft.Json;
+
 public class WeatherPrediction
 {
-  public Weather[] weather { get; set; }
-  
-  public Temperatures main { get; set; }
+  [JsonProperty("weather")]
+  public Weather[] WeatherForecasts { get; set; }
 
-  public string name { get; set; }
+  [JsonProperty("main")]
+  public Temperatures Temps { get; set; }
+
+  [JsonProperty("name")]
+  public string Location { get; set; }
 }

@@ -1,5 +1,13 @@
+using Newtonsoft.Json;
+
 public class Weather
 {
-  public string main { get; set; }
-  public string description { get; set; }
+  [JsonProperty("id")]
+  public int Id { get;set; }
+
+  [JsonProperty("main")]
+  public string Main { get; set; }
+
+  [JsonProperty("description")]
+  public string Description { get; set; }
 }
