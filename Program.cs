@@ -259,6 +259,7 @@ namespace Ganon11.Worfbot
 
       var embedBuilder = new EmbedBuilder()
          .WithTitle($"Weather for {prediction.Location}")
+         .WithThumbnailUrl($"https://openweathermap.org/img/wn/{prediction.WeatherForecasts.First().IconCode}@2x.png")
          .WithDescription(WeatherUtilities.FormatWeatherPrediction(prediction, units))
          .WithCurrentTimestamp();
 
