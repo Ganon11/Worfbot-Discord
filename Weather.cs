@@ -102,10 +102,21 @@ namespace Ganon11.Worfbot
       };
     }
 
+    private static string GetWeatherBriefSummary(WeatherPrediction prediction)
+    {
+      List<string> individualConditions = new();
+      foreach (Weather weather in prediction.WeatherForecasts)
+      {
+        individualConditions.Add($"{GetWeatherEmoji(weather.Id)} {weather.Main}");
+      }
+
+      return string.Join(", ", individualConditions);
+    }
+
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)
     {
       StringBuilder stringBuilder = new();
-      stringBuilder.AppendLine($"{GetWeatherEmoji(prediction.WeatherForecasts.First().Id)} {prediction.WeatherForecasts.First().Main}");
+      stringBuilder.AppendLine($"{GetWeatherBriefSummary(prediction)}");
       stringBuilder.AppendLine($"🌡️ {FormatDegrees(prediction.Temps.Temperature, units)}");
       stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.Temps.High, units)}, ");
       stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.Temps.Low, units)}, ");
