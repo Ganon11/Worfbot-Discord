@@ -11,5 +11,8 @@ public class Weather
 
   [JsonProperty("description")]
   public string Description { get; set; }
+
+  [JsonProperty("icon")]
+  public string IconCode { get; set; }
 }
 #pragma warning restore CS8618

@@ -60,52 +60,53 @@ namespace Ganon11.Worfbot
       }
     }
 
-    private static string GetWeatherEmoji(int id)
-    {
-      // Thunderstorm
-      if (200 <= id && id <= 232)
-      {
-        return "⛈️";
-      }
+    // private static string GetWeatherEmoji(int id)
+    // {
+    //   // Thunderstorm
+    //   if (200 <= id && id <= 232)
+    //   {
+    //     return "⛈️";
+    //   }
 
-      // Drizzle
-      if (300 <= id && id <= 321)
-      {
-        return "☔";
-      }
+    //   // Drizzle
+    //   if (300 <= id && id <= 321)
+    //   {
+    //     return "☔";
+    //   }
 
-      // Rain
-      if (500 <= id && id <= 531)
-      {
-        return "🌧️";
-      }
+    //   // Rain
+    //   if (500 <= id && id <= 531)
+    //   {
+    //     return "🌧️";
+    //   }
 
-      // Snow
-      if (600 <= id && id <= 622)
-      {
-        return "🌨️";
-      }
+    //   // Snow
+    //   if (600 <= id && id <= 622)
+    //   {
+    //     return "🌨️";
+    //   }
 
-      // Atmosphere (???)
-      if (700 <= id && id < 781)
-      {
-        return "🌫️";
-      }
+    //   // Atmosphere (???)
+    //   if (700 <= id && id < 781)
+    //   {
+    //     return "🌫️";
+    //   }
 
-      // Clear, or Clouds
-      return id switch
-      {
-        800 => "😎",
-        801 => "🌤️",
-        802 => "⛅",
-        _ => "☁️",
-      };
-    }
+    //   // Clear, or Clouds
+    //   return id switch
+    //   {
+    //     800 => "😎",
+    //     801 => "🌤️",
+    //     802 => "⛅",
+    //     _ => "☁️",
+    //   };
+    // }
 
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)
     {
       StringBuilder stringBuilder = new();
-      stringBuilder.AppendLine($"{GetWeatherEmoji(prediction.WeatherForecasts.First().Id)} {prediction.WeatherForecasts.First().Main}");
+      //stringBuilder.AppendLine($"{GetWeatherEmoji(prediction.WeatherForecasts.First().Id)} {prediction.WeatherForecasts.First().Main}");
+      stringBuilder.AppendLine($"![Weather icon for {prediction.WeatherForecasts.First().Main}](https://openweathermap.org/img/wn/{prediction.WeatherForecasts.First().IconCode}.png) {prediction.WeatherForecasts.First().Main}");
       stringBuilder.AppendLine($"🌡️ {FormatDegrees(prediction.Temps.Temperature, units)}");
       stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.Temps.High, units)}, ");
       stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.Temps.Low, units)}, ");
