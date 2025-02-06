@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Text;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -201,12 +202,14 @@ namespace Ganon11.Worfbot
       var option = command.Data.Options.FirstOrDefault();
       if (option == default)
       {
+        await command.RespondAsync("You must specify a topic!", ephemeral: true);
         return;
       }
 
       var topic = option.Value.ToString();
       if (topic == null)
       {
+        await command.RespondAsync("You must specify a topic!", ephemeral: true);
         return;
       }
 
@@ -233,29 +236,34 @@ namespace Ganon11.Worfbot
       var topicOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("topic"));
       if (topicOption == null)
       {
+        await command.RespondAsync("You must specify a topic!", ephemeral: true);
         return;
       }
 
       var statusOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("status"));
       if (statusOption == null)
       {
+        await command.RespondAsync("You must specify a status (true or false)!", ephemeral: true);
         return;
       }
 
       var topic = topicOption.Value.ToString();
       if (topic == null)
       {
+        await command.RespondAsync("You must specify a topic!", ephemeral: true);
         return;
       }
 
       var statusString = statusOption.Value.ToString();
       if (statusString == null)
       {
+        await command.RespondAsync("You must specify a status (true or false)!", ephemeral: true);
         return;
       }
 
       if (!bool.TryParse(statusString, out var status))
       {
+        await command.RespondAsync("You must specify a status (true or false)!", ephemeral: true);
         return;
       }
 
@@ -296,6 +304,15 @@ namespace Ganon11.Worfbot
 
       if (location == null)
       {
+        StringBuilder error = new();
+        error.AppendLine("You must specify at least one way to determine the location!");
+        error.AppendLine("Choose one of the following:");
+        error.AppendLine("- ZIP Code");
+        error.AppendLine("- Latitude and Longitude");
+        error.AppendLine("- City Name");
+        error.AppendLine("  - (Optional) State");
+        error.AppendLine("  - (Optional) Country Code (Defaults to US)");
+        await command.RespondAsync(error.ToString(), ephemeral: true);
         return;
       }
 
