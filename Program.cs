@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Pluralize.NET;
+using Worfbot.WeatherModels;
 
 namespace Ganon11.Worfbot
 {
@@ -106,11 +107,45 @@ namespace Ganon11.Worfbot
           .WithName("weather")
           .WithDescription("Asks Worfbot about the weather in a location.")
           .AddOption(new SlashCommandOptionBuilder()
+            .WithName("latitude")
+            .WithDescription("Latitude, as a signed floating-point decimal")
+            .WithRequired(false)
+            .WithType(ApplicationCommandOptionType.Number)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("longitude")
+            .WithDescription("Longitude, as a signed floating-point decimal")
+            .WithRequired(false)
+            .WithType(ApplicationCommandOptionType.Number)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
             .WithName("zip-code")
             .WithDescription("US ZIP code of location")
-            .WithRequired(true)
+            .WithRequired(false)
             .WithMinLength(5)
             .WithMaxLength(5)
+            .WithType(ApplicationCommandOptionType.String)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("city")
+            .WithDescription("City Name")
+            .WithRequired(false)
+            .WithType(ApplicationCommandOptionType.String)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("state")
+            .WithDescription("State (2-Character String)")
+            .WithRequired(false)
+            .WithMinLength(2)
+            .WithMaxLength(2)
+            .WithType(ApplicationCommandOptionType.String)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("country")
+            .WithDescription("Country Code (2-Character String)")
+            .WithRequired(false)
+            .WithMinLength(2)
+            .WithMaxLength(2)
             .WithType(ApplicationCommandOptionType.String)
           )
           .AddOption(new SlashCommandOptionBuilder()
@@ -235,8 +270,31 @@ namespace Ganon11.Worfbot
 
     private async Task HandleWeatherCommand(SocketSlashCommand command)
     {
+      Location? location = null;
+
       var zipCodeOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("zip-code"));
-      if (zipCodeOption == null)
+      if (zipCodeOption != null)
+      {
+        location = await WeatherUtilities.GetLocationFromZip(zipCodeOption.Value.ToString()!, _configuration, _logger);
+      }
+
+      var cityOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("city"));
+      if (cityOption != null)
+      {
+        var stateOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("state"));
+        var countryOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("country"));
+        string country = countryOption?.Value.ToString() ?? "US";
+        location = await WeatherUtilities.GetLocationFromCityName(cityOption.Value.ToString()!, state: stateOption?.Value.ToString(), country: country, configuration: _configuration, logger: _logger);
+      }
+
+      var latOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("latitude"));
+      var lonOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("longitude"));
+      if (latOption != null && lonOption != null)
+      {
+        location = new Location { Latitude = Convert.ToDouble(latOption.Value), Longitude = Convert.ToDouble(lonOption.Value) };
+      }
+
+      if (location == null)
       {
         return;
       }
@@ -245,16 +303,10 @@ namespace Ganon11.Worfbot
       var unitsOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("units"));
       units = unitsOption == null ? WeatherUtilities.Units.Imperial : (WeatherUtilities.Units)Convert.ToInt32(unitsOption.Value);
 
-      var zipCode = zipCodeOption.Value.ToString();
-      if (zipCode == null)
-      {
-        return;
-      }
-
-      LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for zip code \"{zipCode}\", units \"{units}\"");
+      LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for location \"{location}\", units \"{units}\"");
       await _logger.Log(message);
 
-      var prediction = await WeatherUtilities.CheckWeather(zipCode, units, _configuration, _logger);
+      var prediction = await WeatherUtilities.CheckWeather(location, units, _configuration, _logger);
 
       var embedBuilder = new EmbedBuilder()
          .WithTitle($"Weather for {prediction.Location}")
