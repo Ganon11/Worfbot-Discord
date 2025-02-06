@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Web;
+using Worfbot.WeatherModels;
 
 namespace Ganon11.Worfbot
 {
@@ -17,13 +18,43 @@ namespace Ganon11.Worfbot
 
     const string WEATHER_API_CONFIGURATION_KEY = "API_KEY";
 
-    public static async Task<WeatherPrediction> CheckWeather(string zipCode, Units units, IConfiguration configuration, ILogger? logger = null)
+    private static HttpClient GetHttpClient()
     {
-      string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
-      using HttpClient client = new();
+      var client = new HttpClient();
       client.DefaultRequestHeaders.Accept.Clear();
       client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
       client.DefaultRequestHeaders.Add("User-Agent", "Worfbot-Discord");
+      return client;
+    }
+
+    public static async Task<Location> GetLatitudeLongitudeFromZip(string zipCode, IConfiguration configuration, ILogger? logger = null)
+    {
+      string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
+      using HttpClient client = GetHttpClient();
+
+      var uri = new UriBuilder("http://api.openweathermap.org/geo/1.0/zip");
+      var parameters = HttpUtility.ParseQueryString(string.Empty);
+      parameters["zip"] = zipCode;
+
+      if (logger != null)
+      {
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(GetLatitudeLongitudeFromZip), $"Making API call to {uri.ToString()}"));
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Parameters: {parameters.ToString()}"));
+      }
+
+      parameters["appid"] = apiKey;
+
+      uri.Query = parameters.ToString();
+
+      string json = await client.GetStringAsync(uri.Uri);
+      Location location = Newtonsoft.Json.JsonConvert.DeserializeObject<Location>(json) ?? throw new Exception("Couldn't get a location!");
+      return location;
+    }
+
+    public static async Task<WeatherPrediction> CheckWeather(string zipCode, Units units, IConfiguration configuration, ILogger? logger = null)
+    {
+      string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
+      using HttpClient client = GetHttpClient();
 
       var uri = new UriBuilder("https://api.openweathermap.org/data/2.5/weather");
       var parameters = HttpUtility.ParseQueryString(string.Empty);
