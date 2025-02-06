@@ -52,11 +52,11 @@ namespace Ganon11.Worfbot
         case Units.Standard:
           return $"{degrees} K";
         case Units.Imperial:
-          return $"{degrees}° F";
+          return $"{degrees}°F";
         case Units.Metric:
-          return $"{degrees}° C";
+          return $"{degrees}°C";
         default:
-          return $"{degrees}° F";
+          return $"{degrees}°F";
       }
     }
 

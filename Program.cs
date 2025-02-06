@@ -114,9 +114,9 @@ namespace Ganon11.Worfbot
             .WithName("units")
             .WithDescription("Which units to use?")
             .WithRequired(true)
-            .AddChoice("Standard", 1)
-            .AddChoice("Imperial", 2)
-            .AddChoice("Metric", 3)
+            .AddChoice("Kelvin", 1)
+            .AddChoice("Fahrenheit", 2)
+            .AddChoice("Celsius", 3)
             .WithType(ApplicationCommandOptionType.Integer)
           );
 
@@ -256,7 +256,6 @@ namespace Ganon11.Worfbot
       await _logger.Log(message);
 
       var prediction = await WeatherUtilities.CheckWeather(zipCode, units, _configuration, _logger);
-      //await command.RespondAsync(WeatherUtilities.FormatWeatherPrediction(prediction, units));
 
       var embedBuilder = new EmbedBuilder()
          .WithTitle($"Weather for {prediction.Location}")
