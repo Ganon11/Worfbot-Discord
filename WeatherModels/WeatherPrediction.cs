@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 
+#pragma warning disable CS8618
 public class WeatherPrediction
 {
   [JsonProperty("weather")]
@@ -11,3 +12,4 @@ public class WeatherPrediction
   [JsonProperty("name")]
   public string Location { get; set; }
 }
+#pragma warning restore CS8618

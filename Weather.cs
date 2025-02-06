@@ -19,31 +19,30 @@ namespace Ganon11.Worfbot
 
     public static async Task<WeatherPrediction> CheckWeather(string zipCode, Units units, IConfiguration configuration, ILogger? logger = null)
     {
-      string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY];
-      using (HttpClient client = new())
+      string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
+      using HttpClient client = new();
+      client.DefaultRequestHeaders.Accept.Clear();
+      client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+      client.DefaultRequestHeaders.Add("User-Agent", "Worfbot-Discord");
+
+      var uri = new UriBuilder("https://api.openweathermap.org/data/2.5/weather");
+      var parameters = HttpUtility.ParseQueryString(string.Empty);
+      parameters["zip"] = zipCode;
+      parameters["units"] = units.ToString().ToLower();
+
+      if (logger != null)
       {
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("User-Agent", "Worfbot-Discord");
-
-        var uri = new UriBuilder("https://api.openweathermap.org/data/2.5/weather");
-        var parameters = HttpUtility.ParseQueryString(string.Empty);
-        parameters["zip"] = zipCode;
-        parameters["units"] = units.ToString().ToLower();
-
-        if (logger != null)
-        {
-          await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Making API call to {uri.ToString()}"));
-          await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Parameters: {parameters.ToString()}"));
-        }
-
-        parameters["appid"] = apiKey;
-
-        uri.Query = parameters.ToString();
-
-        string json = await client.GetStringAsync(uri.Uri);
-        return Newtonsoft.Json.JsonConvert.DeserializeObject<WeatherPrediction>(json);
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Making API call to {uri.ToString()}"));
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Parameters: {parameters.ToString()}"));
       }
+
+      parameters["appid"] = apiKey;
+
+      uri.Query = parameters.ToString();
+
+      string json = await client.GetStringAsync(uri.Uri);
+      WeatherPrediction weatherPrediction = Newtonsoft.Json.JsonConvert.DeserializeObject<WeatherPrediction>(json) ?? throw new Exception("Couldn't get a weather prediction!");
+      return weatherPrediction;
     }
 
     private static string FormatDegrees(double degrees, Units units)
@@ -94,19 +93,13 @@ namespace Ganon11.Worfbot
       }
 
       // Clear, or Clouds
-      switch (id)
+      return id switch
       {
-        case 800:
-          return "😎";
-        case 801:
-          return "🌤️";
-        case 802:
-          return "⛅";
-        case 803:
-        case 804:
-        default:
-          return "☁️";
-      }
+        800 => "😎",
+        801 => "🌤️",
+        802 => "⛅",
+        _ => "☁️",
+      };
     }
 
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)

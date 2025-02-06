@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 
+#pragma warning disable CS8618
 public class Temperatures
 {
   [JsonProperty("temp")]
@@ -15,3 +16,4 @@ public class Temperatures
   [JsonProperty("temp_max")]
   public double High { get; set;}
 }
+#pragma warning restore CS8618
