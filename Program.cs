@@ -50,7 +50,10 @@ namespace Ganon11.Worfbot
       client.Log += _logger.Log;
       client.SlashCommandExecuted += SlashCommandHandler;
       // Uncomment when changing slash commands
-      //client.Ready += UpdateSlashCommands;
+      if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
+      {
+        client.Ready += UpdateSlashCommands;
+      }
 
       await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
       await client.StartAsync();
@@ -112,8 +115,8 @@ namespace Ganon11.Worfbot
           )
           .AddOption(new SlashCommandOptionBuilder()
             .WithName("units")
-            .WithDescription("Which units to use?")
-            .WithRequired(true)
+            .WithDescription("Which units to use? Default is Fahrenheit.")
+            .WithRequired(false)
             .AddChoice("Kelvin", 1)
             .AddChoice("Fahrenheit", 2)
             .AddChoice("Celsius", 3)
@@ -238,19 +241,15 @@ namespace Ganon11.Worfbot
         return;
       }
 
+      WeatherUtilities.Units units;
       var unitsOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("units"));
-      if (unitsOption == null)
-      {
-        return;
-      }
+      units = unitsOption == null ? WeatherUtilities.Units.Imperial : (WeatherUtilities.Units)Convert.ToInt32(unitsOption.Value);
 
       var zipCode = zipCodeOption.Value.ToString();
       if (zipCode == null)
       {
         return;
       }
-
-      WeatherUtilities.Units units = (WeatherUtilities.Units)Convert.ToInt32(unitsOption.Value);
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for zip code \"{zipCode}\", units \"{units}\"");
       await _logger.Log(message);
