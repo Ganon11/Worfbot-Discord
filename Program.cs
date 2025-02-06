@@ -19,6 +19,7 @@ namespace Ganon11.Worfbot
       _configuration = new ConfigurationBuilder()
           .AddEnvironmentVariables(prefix: "DATABASE_")
           .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
+          .AddEnvironmentVariables(prefix: "WEATHER_")
           .SetBasePath(Directory.GetCurrentDirectory())
           .AddJsonFile("appsettings.json", optional: true)
           .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
@@ -101,7 +102,23 @@ namespace Ganon11.Worfbot
       var weatherCommand = new SlashCommandBuilder()
           .WithName("weather")
           .WithDescription("Asks Worfbot about the weather in a location.")
-          .AddOption("zip-code", ApplicationCommandOptionType.Number, "US ZIP code of location", isRequired: true);
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("zip-code")
+            .WithDescription("US ZIP code of location")
+            .WithRequired(true)
+            .WithMinLength(5)
+            .WithMaxLength(5)
+            .WithType(ApplicationCommandOptionType.String)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("units")
+            .WithDescription("Which units to use?")
+            .WithRequired(true)
+            .AddChoice("Standard", 1)
+            .AddChoice("Imperial", 2)
+            .AddChoice("Metric", 3)
+            .WithType(ApplicationCommandOptionType.Integer)
+          );
 
       try
       {
@@ -215,23 +232,31 @@ namespace Ganon11.Worfbot
 
     private async Task HandleWeatherCommand(SocketSlashCommand command)
     {
-      var option = command.Data.Options.FirstOrDefault();
-      if (option == default)
+      var zipCodeOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("zip-code"));
+      if (zipCodeOption == null)
       {
         return;
       }
 
-      var zipCode = option.Value.ToString();
+      var unitsOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("units"));
+      if (unitsOption == null)
+      {
+        return;
+      }
+
+      var zipCode = zipCodeOption.Value.ToString();
       if (zipCode == null)
       {
         return;
       }
 
-      LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested weather for zip code \"{zipCode}\"");
+      WeatherUtilities.Units units = (WeatherUtilities.Units)Convert.ToInt32(unitsOption.Value);
+
+      LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for zip code \"{zipCode}\", units \"{units}\"");
       await _logger.Log(message);
 
-      var prediction = await WeatherUtilities.CheckWeather(zipCode, _configuration);
-      await command.RespondAsync($"Weather for {prediction.name}: {prediction.weather.First().main}, {prediction.main.temp}° C (High {prediction.main.temp_max}°, Low {prediction.main.temp_min}°), feels like {prediction.main.feels_like}°");
+      var prediction = await WeatherUtilities.CheckWeather(zipCode, units, _configuration, _logger);
+      await command.RespondAsync(WeatherUtilities.FormatWeatherPrediction(prediction, units));
 
       return;
     }
