@@ -256,7 +256,14 @@ namespace Ganon11.Worfbot
       await _logger.Log(message);
 
       var prediction = await WeatherUtilities.CheckWeather(zipCode, units, _configuration, _logger);
-      await command.RespondAsync(WeatherUtilities.FormatWeatherPrediction(prediction, units));
+      //await command.RespondAsync(WeatherUtilities.FormatWeatherPrediction(prediction, units));
+
+      var embedBuilder = new EmbedBuilder()
+         .WithTitle($"Weather for {prediction.name}")
+         .WithDescription(WeatherUtilities.FormatWeatherPrediction(prediction, units))
+         .WithCurrentTimestamp();
+
+      await command.RespondAsync(embed: embedBuilder.Build());
 
       return;
     }
