@@ -64,12 +64,11 @@ namespace Ganon11.Worfbot
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)
     {
       StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.Append($"Weather for {prediction.name}: ");
-      stringBuilder.Append($"{prediction.weather.First().main}, ");
-      stringBuilder.Append($"{FormatDegrees(prediction.main.temp, units)} ");
-      stringBuilder.Append($"(High {FormatDegrees(prediction.main.temp_max, units)}, ");
-      stringBuilder.Append($"Low {FormatDegrees(prediction.main.temp_min, units)}, ");
-      stringBuilder.Append($"feels like {FormatDegrees(prediction.main.feels_like, units)})");
+      stringBuilder.AppendLine($"{prediction.weather.First().main}");
+      stringBuilder.AppendLine($"{FormatDegrees(prediction.main.temp, units)}");
+      stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.main.temp_max, units)}, ");
+      stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.main.temp_min, units)}, ");
+      stringBuilder.Append($"🍃 Feels Like {FormatDegrees(prediction.main.feels_like, units)})");
       return stringBuilder.ToString();
     }
   }
