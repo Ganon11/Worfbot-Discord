@@ -19,6 +19,14 @@ namespace Worfbot.WeatherModels
 
     [JsonProperty("country")]
     public string Country { get; set; }
+
+    [JsonProperty("state")]
+    public string State { get; set; }
+
+    public override string ToString()
+    {
+      return $"{LocationName} {State} {Country} {ZipCode} ({Latitude}, {Longitude})";
+    }
   }
 #pragma warning restore CS8618
 }
