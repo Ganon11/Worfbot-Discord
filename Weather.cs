@@ -39,7 +39,7 @@ namespace Ganon11.Worfbot
       if (logger != null)
       {
         await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(GetLocationFromZip), $"Making API call to {uri.ToString()}"));
-        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Parameters: {parameters.ToString()}"));
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(GetLocationFromZip), $"Parameters: {parameters.ToString()}"));
       }
 
       parameters["appid"] = apiKey;
@@ -78,7 +78,7 @@ namespace Ganon11.Worfbot
       if (logger != null)
       {
         await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(GetLocationFromCityName), $"Making API call to {uri.ToString()}"));
-        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(CheckWeather), $"Parameters: {parameters.ToString()}"));
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Info, nameof(GetLocationFromCityName), $"Parameters: {parameters.ToString()}"));
       }
 
       parameters["appid"] = apiKey;
@@ -112,6 +112,10 @@ namespace Ganon11.Worfbot
       uri.Query = parameters.ToString();
 
       string json = await client.GetStringAsync(uri.Uri);
+      if (logger != null)
+      {
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Debug, nameof(CheckWeather), $"JSON Dump: {json}"));
+      }
       WeatherPrediction weatherPrediction = Newtonsoft.Json.JsonConvert.DeserializeObject<WeatherPrediction>(json) ?? throw new Exception("Couldn't get a weather prediction!");
       return weatherPrediction;
     }
@@ -129,7 +133,7 @@ namespace Ganon11.Worfbot
 
     private static string FormatTemperatures(Temperatures temps, Units units)
     {
-      return $"{FormatDegrees(temps.Temperature, units)} (between {FormatDegrees(temps.MaxTemp, units)} and {FormatDegrees(temps.MinTemp, units)}), 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
+      return $"{FormatDegrees(temps.Temperature, units)} (between {FormatDegrees(temps.MinTemp, units)} and {FormatDegrees(temps.MaxTemp, units)}), 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
     }
 
     private static string FormatWindSpeed(double speed, Units units)
@@ -229,7 +233,7 @@ namespace Ganon11.Worfbot
 
     private static string FormatWind(Wind wind, Units units)
     {
-      return $"{FormatWindSpeed(wind.WindSpeed, units)} {FormatWindDirection(wind.Degrees)}, gusts of {FormatWindSpeed(wind.WindSpeed, units)}";
+      return $"{FormatWindSpeed(wind.WindSpeed, units)} {FormatWindDirection(wind.Degrees)}, gusts of {FormatWindSpeed(wind.Gust, units)}";
     }
 
     private static string GetWeatherEmoji(int id)
