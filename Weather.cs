@@ -151,7 +151,7 @@ namespace Ganon11.Worfbot
     {
       StringBuilder stringBuilder = new();
       stringBuilder.Append(FormatDegrees(temps.Temperature, units));
-      stringBuilder.Append($" (between {FormatDegrees(temps.MinTemp, units)} and {FormatDegrees(temps.MaxTemp, units)}");
+      stringBuilder.Append($" (between {FormatDegrees(temps.MinTemp, units)} and {FormatDegrees(temps.MaxTemp, units)})");
       if (Math.Abs(temps.Temperature - temps.FeelsLike) >= TEMP_EPSILON)
       {
         stringBuilder.Append($", 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}");
