@@ -145,9 +145,18 @@ namespace Ganon11.Worfbot
       };
     }
 
+    private const double TEMP_EPSILON = 0.01;
+
     private static string FormatTemperatures(Temperatures temps, Units units)
     {
-      return $"{FormatDegrees(temps.Temperature, units)} (between {FormatDegrees(temps.MinTemp, units)} and {FormatDegrees(temps.MaxTemp, units)}), 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
+      StringBuilder stringBuilder = new();
+      stringBuilder.Append(FormatDegrees(temps.Temperature, units));
+      stringBuilder.Append($" (between {FormatDegrees(temps.MinTemp, units)} and {FormatDegrees(temps.MaxTemp, units)}");
+      if (Math.Abs(temps.Temperature - temps.FeelsLike) >= TEMP_EPSILON)
+      {
+        stringBuilder.Append($", 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}");
+      }
+      return stringBuilder.ToString();
     }
 
     private static string FormatWindSpeed(double speed, Units units)
