@@ -2,6 +2,13 @@ using Microsoft.Extensions.Configuration;
 
 namespace Worfbot.Honor
 {
+  public enum HonorStatus
+  {
+    Dishonorable = 0,
+    Honorable = 1,
+    Unknown = 2
+  }
+
   public static class Utilities
   {
     private static string CreateMD5(string input)
@@ -14,9 +21,9 @@ namespace Worfbot.Honor
 
     private static readonly char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
 
-    public static async Task<bool> DetermineHonor(string topic, IConfiguration configuration, ILogger? logger = null)
+    public static async Task<bool> DetermineHonor(string topic, IConfiguration configuration, Logging.ILogger? logger = null)
     {
-      var database = new WorfbotDatabase(configuration);
+      var database = new Database.Database(configuration);
       var databaseStatus = await database.DetermineHonorFromDatabase(topic);
       if (databaseStatus != HonorStatus.Unknown)
       {
@@ -37,7 +44,7 @@ namespace Worfbot.Honor
 
     public static async Task SetHonor(string topic, bool status, IConfiguration configuration)
     {
-      var database = new WorfbotDatabase(configuration);
+      var database = new Database.Database(configuration);
       await database.SetHonorInDatabase(topic, status);
     }
   }

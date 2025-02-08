@@ -19,7 +19,7 @@ namespace Worfbot.Weather
       return client;
     }
 
-    public static async Task<Location> GetLocationFromZip(string zipCode, IConfiguration configuration, ILogger? logger = null)
+    public static async Task<Location> GetLocationFromZip(string zipCode, IConfiguration configuration, Logging.ILogger? logger = null)
     {
       string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
       using HttpClient client = GetHttpClient();
@@ -43,7 +43,7 @@ namespace Worfbot.Weather
       return location;
     }
 
-    public static async Task<Location> GetLocationFromCityName(string cityName, IConfiguration configuration, string? state = null, string? country = null, ILogger? logger = null)
+    public static async Task<Location> GetLocationFromCityName(string cityName, IConfiguration configuration, string? state = null, string? country = null, Logging.ILogger? logger = null)
     {
       string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
       using HttpClient client = GetHttpClient();
@@ -86,7 +86,7 @@ namespace Worfbot.Weather
       return !locations.Any() ? throw new Exception("Couldn't get a location!") : locations.First();
     }
 
-    public static async Task<WeatherPrediction> CheckWeather(Location location, Units units, IConfiguration configuration, ILogger? logger = null)
+    public static async Task<WeatherPrediction> CheckWeather(Location location, Units units, IConfiguration configuration, Logging.ILogger? logger = null)
     {
       string apiKey = configuration[WEATHER_API_CONFIGURATION_KEY] ?? throw new Exception("No API KEY setup!");
       using HttpClient client = GetHttpClient();

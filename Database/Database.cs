@@ -1,16 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace Worfbot
+namespace Worfbot.Database
 {
-  public enum HonorStatus
-  {
-    Dishonorable = 0,
-    Honorable = 1,
-    Unknown = 2
-  }
-
-  public class WorfbotDatabase
+  public class Database
   {
     private readonly string _username;
     private readonly string _password;
@@ -19,7 +12,7 @@ namespace Worfbot
 
     private readonly string _connectionString;
 
-    public WorfbotDatabase(IConfiguration configuration)
+    public Database(IConfiguration configuration)
     {
       _username = configuration["USERNAME"] ?? "";
       _password = configuration["PASSWORD"] ?? "";
@@ -36,7 +29,7 @@ namespace Worfbot
       return conn;
     }
 
-    public async Task<HonorStatus> DetermineHonorFromDatabase(string topic)
+    public async Task<Honor.HonorStatus> DetermineHonorFromDatabase(string topic)
     {
       await using var conn = ConnectToDatabase();
       await conn.OpenAsync();
@@ -50,12 +43,14 @@ namespace Worfbot
       };
 
       var result = await selectCommand.ExecuteScalarAsync();
+#pragma warning disable IDE0046 // Convert to conditional expression
       if (result == null)
       {
-        return HonorStatus.Unknown;
+        return Honor.HonorStatus.Unknown;
       }
+#pragma warning restore IDE0046 // Convert to conditional expression
 
-      return (bool)result ? HonorStatus.Honorable : HonorStatus.Dishonorable;
+      return (bool)result ? Honor.HonorStatus.Honorable : Honor.HonorStatus.Dishonorable;
     }
 
     public async Task SetHonorInDatabase(string topic, bool status)

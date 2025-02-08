@@ -12,7 +12,7 @@ namespace Worfbot
   public class Program
   {
     private readonly IConfiguration _configuration;
-    private readonly ILogger _logger;
+    private readonly Logging.ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
 
     public Program()
@@ -26,7 +26,7 @@ namespace Worfbot
           .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
           .Build();
 
-      _logger = new Logger(_configuration["Logging:Severity"] ?? "");
+      _logger = new Logging.Logger(_configuration["Logging:Severity"] ?? "");
 
       var discordConfig = new DiscordSocketConfig()
       {

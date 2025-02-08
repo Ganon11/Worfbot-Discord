@@ -1,9 +1,6 @@
 ﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 
-
-namespace Worfbot
+namespace Worfbot.Logging
 {
   public interface ILogger
   {
