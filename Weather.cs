@@ -124,6 +124,16 @@ namespace Ganon11.Worfbot
       return weatherPrediction;
     }
 
+    private static string FormatPrecipitation(Rain rain)
+    {
+      return $"☔ {rain.Precipitation} mm/h";
+    }
+
+    private static string FormatPrecipitation(Snow snow)
+    {
+      return $"❄️ {snow.Precipitation} mm/h";
+    }
+
     private static string FormatDegrees(double degrees, Units units)
     {
       return units switch
@@ -296,7 +306,15 @@ namespace Ganon11.Worfbot
     public static string FormatWeatherPrediction(WeatherPrediction prediction, Units units)
     {
       StringBuilder stringBuilder = new();
-      stringBuilder.AppendLine($"{GetWeatherBriefSummary(prediction)}");
+      stringBuilder.AppendLine(GetWeatherBriefSummary(prediction));
+      if (prediction.Rain != null)
+      {
+        stringBuilder.AppendLine(FormatPrecipitation(prediction.Rain));
+      }
+      if (prediction.Snow != null)
+      {
+        stringBuilder.AppendLine(FormatPrecipitation(prediction.Snow));
+      }
       stringBuilder.AppendLine($"🌡️ {FormatTemperatures(prediction.Temps, units)}");
       stringBuilder.AppendLine($"💨 {FormatWind(prediction.Wind, units)}");
       return stringBuilder.ToString();
