@@ -16,6 +16,12 @@ namespace Worfbot.WeatherModels
 
     [JsonProperty("name")]
     public string Location { get; set; }
+
+    [JsonProperty("rain")]
+    public Rain? Rain { get; set; }
+
+    [JsonProperty("snow")]
+    public Snow? Snow { get; set; }
   }
 #pragma warning restore CS8618
 }
