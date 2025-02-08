@@ -86,6 +86,10 @@ namespace Ganon11.Worfbot
       uri.Query = parameters.ToString();
 
       string json = await client.GetStringAsync(uri.Uri);
+      if (logger != null)
+      {
+        await logger.Log(new Discord.LogMessage(Discord.LogSeverity.Debug, nameof(CheckWeather), $"JSON Dump: {json}"));
+      }
       List<Location> locations = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Location>>(json) ?? throw new Exception("Couldn't get a location!");
       return !locations.Any() ? throw new Exception("Couldn't get a location!") : locations.First();
     }
