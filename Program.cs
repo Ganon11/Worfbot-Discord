@@ -6,9 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Pluralize.NET;
-using Worfbot.WeatherModels;
 
-namespace Ganon11.Worfbot
+namespace Worfbot
 {
   public class Program
   {
@@ -213,7 +212,7 @@ namespace Ganon11.Worfbot
         return;
       }
 
-      var honor = await HonorUtilities.DetermineHonor(topic, _configuration, _logger);
+      var honor = await Honor.Utilities.DetermineHonor(topic, _configuration, _logger);
       if (honor)
       {
         var verb = await IsPlural(topic) ? "have" : "has";
@@ -270,7 +269,7 @@ namespace Ganon11.Worfbot
       LogMessage message = new(LogSeverity.Info, nameof(HandleSetHonorCommand), $"{command.User.Username} setting honor status of topic \"{topic}\" to {status}");
       await _logger.Log(message);
 
-      await HonorUtilities.SetHonor(topic, status, _configuration);
+      await Honor.Utilities.SetHonor(topic, status, _configuration);
 
       await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
       return;
@@ -278,12 +277,12 @@ namespace Ganon11.Worfbot
 
     private async Task HandleWeatherCommand(SocketSlashCommand command)
     {
-      Location? location = null;
+      Weather.WeatherModels.Location? location = null;
 
       var zipCodeOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("zip-code"));
       if (zipCodeOption != null)
       {
-        location = await WeatherUtilities.GetLocationFromZip(zipCodeOption.Value.ToString()!, _configuration, _logger);
+        location = await Weather.API.GetLocationFromZip(zipCodeOption.Value.ToString()!, _configuration, _logger);
       }
 
       var cityOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("city"));
@@ -292,14 +291,14 @@ namespace Ganon11.Worfbot
         var stateOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("state"));
         var countryOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("country"));
         string country = countryOption?.Value.ToString() ?? "US";
-        location = await WeatherUtilities.GetLocationFromCityName(cityOption.Value.ToString()!, state: stateOption?.Value.ToString(), country: country, configuration: _configuration, logger: _logger);
+        location = await Weather.API.GetLocationFromCityName(cityOption.Value.ToString()!, state: stateOption?.Value.ToString(), country: country, configuration: _configuration, logger: _logger);
       }
 
       var latOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("latitude"));
       var lonOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("longitude"));
       if (latOption != null && lonOption != null)
       {
-        location = new Location { Latitude = Convert.ToDouble(latOption.Value), Longitude = Convert.ToDouble(lonOption.Value) };
+        location = new Weather.WeatherModels.Location { Latitude = Convert.ToDouble(latOption.Value), Longitude = Convert.ToDouble(lonOption.Value) };
       }
 
       if (location == null)
@@ -316,19 +315,19 @@ namespace Ganon11.Worfbot
         return;
       }
 
-      WeatherUtilities.Units units;
+      Weather.Units units;
       var unitsOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("units"));
-      units = unitsOption == null ? WeatherUtilities.Units.Imperial : (WeatherUtilities.Units)Convert.ToInt32(unitsOption.Value);
+      units = unitsOption == null ? Weather.Units.Imperial : (Weather.Units)Convert.ToInt32(unitsOption.Value);
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for location \"{location}\", units \"{units}\"");
       await _logger.Log(message);
 
-      var prediction = await WeatherUtilities.CheckWeather(location, units, _configuration, _logger);
+      var prediction = await Weather.API.CheckWeather(location, units, _configuration, _logger);
 
       var embedBuilder = new EmbedBuilder()
          .WithTitle($"Weather for {prediction.Location}")
          .WithThumbnailUrl($"https://openweathermap.org/img/wn/{prediction.WeatherForecasts.First().IconCode}@2x.png")
-         .WithDescription(WeatherUtilities.FormatWeatherPrediction(prediction, units))
+         .WithDescription(Weather.Formatting.FormatWeatherPrediction(prediction, units))
          .WithCurrentTimestamp();
 
       await command.RespondAsync(embed: embedBuilder.Build());

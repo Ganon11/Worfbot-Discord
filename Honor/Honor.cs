@@ -1,18 +1,15 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Ganon11.Worfbot
+namespace Worfbot.Honor
 {
-  public static class HonorUtilities
+  public static class Utilities
   {
     private static string CreateMD5(string input)
     {
-      using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
-      {
-        byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
-        byte[] hashBytes = md5.ComputeHash(inputBytes);
+      byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+      byte[] hashBytes = System.Security.Cryptography.MD5.HashData(inputBytes);
 
-        return Convert.ToHexString(hashBytes);
-      }
+      return Convert.ToHexString(hashBytes);
     }
 
     private static readonly char[] HONORABLE_SUFFIXES = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace Ganon11.Worfbot
+namespace Worfbot
 {
   public enum HonorStatus
   {

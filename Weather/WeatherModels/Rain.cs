@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Worfbot.WeatherModels
+namespace Worfbot.Weather.WeatherModels
 {
 #pragma warning disable CS8618
   public class Rain

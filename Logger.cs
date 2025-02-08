@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 
 
-namespace Ganon11.Worfbot
+namespace Worfbot
 {
   public interface ILogger
   {
