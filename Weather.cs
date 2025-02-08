@@ -129,7 +129,7 @@ namespace Ganon11.Worfbot
 
     private static string FormatTemperatures(Temperatures temps, Units units)
     {
-      return $"{FormatDegrees(temps.Temperature, units)}, 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
+      return $"{FormatDegrees(temps.Temperature, units)} (between {FormatDegrees(temps.MaxTemp, units)} and {FormatDegrees(temps.MinTemp, units)}), 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
     }
 
     private static string FormatWindSpeed(double speed, Units units)

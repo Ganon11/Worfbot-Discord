@@ -13,10 +13,10 @@ namespace Worfbot.WeatherModels
     public double FeelsLike { get; set;}
 
     [JsonProperty("temp_min")]
-    public double Low { get; set;}
+    public double MinTemp { get; set;}
 
     [JsonProperty("temp_max")]
-    public double High { get; set;}
+    public double MaxTemp { get; set;}
   }
 #pragma warning restore CS8618
 }
