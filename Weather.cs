@@ -118,17 +118,118 @@ namespace Ganon11.Worfbot
 
     private static string FormatDegrees(double degrees, Units units)
     {
-      switch (units)
+      return units switch
       {
-        case Units.Standard:
-          return $"{degrees} K";
-        case Units.Imperial:
-          return $"{degrees}°F";
-        case Units.Metric:
-          return $"{degrees}°C";
-        default:
-          return $"{degrees}°F";
+        Units.Standard => $"{degrees} K",
+        Units.Imperial => $"{degrees}°F",
+        Units.Metric => $"{degrees}°C",
+        _ => $"{degrees}°F",
+      };
+    }
+
+    private static string FormatTemperatures(Temperatures temps, Units units)
+    {
+      return $"{FormatDegrees(temps.Temperature, units)} (between {FormatDegrees(temps.MaxTemp, units)} and {FormatDegrees(temps.MinTemp, units)}), 🍃 Feels Like {FormatDegrees(temps.FeelsLike, units)}";
+    }
+
+    private static string FormatWindSpeed(double speed, Units units)
+    {
+      return units == Units.Metric ? $"{speed} m/s" : $"{speed} mph";
+    }
+
+    private static string FormatWindDirection(double degrees)
+    {
+      if (degrees < 0 || degrees > 360)
+      {
+        throw new Exception("Invalid degrees!");
       }
+
+      if (degrees < 11.25)
+      {
+        return "⬆️ North";
+      }
+
+      if (degrees < 33.75)
+      {
+        return "⬆️ North-Northeast";
+      }
+
+      if (degrees < 56.25)
+      {
+        return "↗️ Northeast";
+      }
+
+      if (degrees < 78.75)
+      {
+        return "↗️ East-Northeast";
+      }
+
+      if (degrees < 101.25)
+      {
+        return "➡️ East";
+      }
+
+      if (degrees < 123.75)
+      {
+        return "➡️ East-Southeast";
+      }
+
+      if (degrees < 146.25)
+      {
+        return "↘️ Southeast";
+      }
+
+      if (degrees < 168.75)
+      {
+        return "↘️ South-Southeast";
+      }
+
+      if (degrees < 191.25)
+      {
+        return "⬇️ South";
+      }
+
+      if (degrees < 213.75)
+      {
+        return "⬇️ South-Southwest";
+      }
+
+      if (degrees < 236.25)
+      {
+        return "↙️ Southwest";
+      }
+
+      if (degrees < 258.75)
+      {
+        return "↙️ West-Southwest";
+      }
+
+      if (degrees < 281.25)
+      {
+        return "⬅️ West";
+      }
+
+      if (degrees < 303.75)
+      {
+        return "⬅️ West-Northwest";
+      }
+
+      if (degrees < 326.25)
+      {
+        return "↖️ Northwest";
+      }
+
+      if (degrees < 348.75)
+      {
+        return "↖️ North-Northwest";
+      }
+
+      return "⬆️ North";
+    }
+
+    private static string FormatWind(Wind wind, Units units)
+    {
+      return $"{FormatWindSpeed(wind.WindSpeed, units)} {FormatWindDirection(wind.Degrees)}, gusts of {FormatWindSpeed(wind.WindSpeed, units)}";
     }
 
     private static string GetWeatherEmoji(int id)
@@ -188,10 +289,8 @@ namespace Ganon11.Worfbot
     {
       StringBuilder stringBuilder = new();
       stringBuilder.AppendLine($"{GetWeatherBriefSummary(prediction)}");
-      stringBuilder.AppendLine($"🌡️ {FormatDegrees(prediction.Temps.Temperature, units)}");
-      stringBuilder.Append($"⬆️ High of {FormatDegrees(prediction.Temps.High, units)}, ");
-      stringBuilder.Append($"⬇️ Low of {FormatDegrees(prediction.Temps.Low, units)}, ");
-      stringBuilder.Append($"🍃 Feels Like {FormatDegrees(prediction.Temps.FeelsLike, units)}");
+      stringBuilder.AppendLine($"🌡️ {FormatTemperatures(prediction.Temps, units)}");
+      stringBuilder.AppendLine($"💨 {FormatWind(prediction.Wind, units)}");
       return stringBuilder.ToString();
     }
   }

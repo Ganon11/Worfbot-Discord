@@ -11,6 +11,9 @@ namespace Worfbot.WeatherModels
     [JsonProperty("main")]
     public Temperatures Temps { get; set; }
 
+    [JsonProperty("wind")]
+    public Wind Wind { get; set; }
+
     [JsonProperty("name")]
     public string Location { get; set; }
   }
