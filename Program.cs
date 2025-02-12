@@ -11,32 +11,25 @@ namespace Worfbot
 {
   public class Program
   {
-    private readonly IConfiguration _configuration;
-    private readonly Logging.ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
 
     public Program()
     {
-      _configuration = new ConfigurationBuilder()
-          .AddEnvironmentVariables(prefix: "DATABASE_")
-          .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
-          .AddEnvironmentVariables(prefix: "WEATHER_")
-          .SetBasePath(Directory.GetCurrentDirectory())
-          .AddJsonFile("appsettings.json", optional: true)
-          .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
-          .Build();
-
-      _logger = new Logging.Logger(_configuration["Logging:Severity"] ?? "");
-
-      var discordConfig = new DiscordSocketConfig()
-      {
-        GatewayIntents = GatewayIntents.None
-      };
-
+      IConfiguration configuration = new ConfigurationBuilder()
+        .AddEnvironmentVariables(prefix: "DATABASE_")
+        .AddEnvironmentVariables(prefix: "DISCORD_BOT_")
+        .AddEnvironmentVariables(prefix: "WEATHER_")
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true)
+        .Build();
       var collection = new ServiceCollection()
-          .AddSingleton(discordConfig)
-          .AddSingleton(_configuration)
-          .AddSingleton(_logger)
+          .AddSingleton(new DiscordSocketConfig()
+            {
+              GatewayIntents = GatewayIntents.None
+            })
+          .AddSingleton(configuration)
+          .AddSingleton<Logging.ILogger>(new Logging.Logger(configuration["Logging:Severity"] ?? ""))
           .AddSingleton<DiscordSocketClient>();
 
       _serviceProvider = collection.BuildServiceProvider();
@@ -47,8 +40,10 @@ namespace Worfbot
     public async Task MainAsync(string[] args)
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
+      var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
 
-      client.Log += _logger.Log;
+      client.Log += logger.Log;
       client.SlashCommandExecuted += SlashCommandHandler;
       // Uncomment when changing slash commands
       if (args.Any() && args[0].Equals("update-slash-commands", StringComparison.OrdinalIgnoreCase))
@@ -56,7 +51,7 @@ namespace Worfbot
         client.Ready += UpdateSlashCommands;
       }
 
-      await client.LoginAsync(TokenType.Bot, _configuration["TOKEN"]);
+      await client.LoginAsync(TokenType.Bot, configuration["TOKEN"]);
       await client.StartAsync();
 
       await Task.Delay(-1);
@@ -65,6 +60,7 @@ namespace Worfbot
     private async Task UpdateSlashCommands()
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
 
       var honorCommand = new SlashCommandBuilder()
           .WithName("honor")
@@ -74,14 +70,14 @@ namespace Worfbot
       try
       {
         LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering honor command...");
-        await _logger.Log(message);
+        await logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(honorCommand.Build());
       }
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
-        await _logger.Log(message);
+        await logger.Log(message);
       }
 
       var setHonorCommand = new SlashCommandBuilder()
@@ -93,14 +89,14 @@ namespace Worfbot
       try
       {
         LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering set-honor command...");
-        await _logger.Log(message);
+        await logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(setHonorCommand.Build());
       }
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
-        await _logger.Log(message);
+        await logger.Log(message);
       }
 
       var weatherCommand = new SlashCommandBuilder()
@@ -167,14 +163,14 @@ namespace Worfbot
       try
       {
         LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering weather command...");
-        await _logger.Log(message);
+        await logger.Log(message);
         await client.CreateGlobalApplicationCommandAsync(weatherCommand.Build());
       }
       catch (HttpException ex)
       {
         var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
-        await _logger.Log(message);
+        await logger.Log(message);
       }
     }
 
@@ -196,14 +192,18 @@ namespace Worfbot
 
     private async Task<bool> IsPlural(string topic)
     {
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
       LogMessage message = new(LogSeverity.Debug, nameof(IsPlural), $"Checking pluralization of {topic}");
-      await _logger.Log(message);
+      await logger.Log(message);
       IPluralize pluralizer = new Pluralizer();
       return pluralizer.IsPlural(topic);
     }
 
     private async Task HandleHonorCommand(SocketSlashCommand command)
     {
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
+      var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+
       var option = command.Data.Options.FirstOrDefault();
       if (option == default)
       {
@@ -218,7 +218,7 @@ namespace Worfbot
         return;
       }
 
-      var honor = await Honor.Utilities.DetermineHonor(topic, _configuration, _logger);
+      var honor = await Honor.Utilities.DetermineHonor(topic, configuration, logger);
       if (honor)
       {
         var verb = await IsPlural(topic) ? "have" : "has";
@@ -231,13 +231,16 @@ namespace Worfbot
       }
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\" (result is {honor})");
-      await _logger.Log(message);
+      await logger.Log(message);
 
       return;
     }
 
     private async Task HandleSetHonorCommand(SocketSlashCommand command)
     {
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
+      var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+
       var topicOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("topic"));
       if (topicOption == null)
       {
@@ -273,9 +276,9 @@ namespace Worfbot
       }
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleSetHonorCommand), $"{command.User.Username} setting honor status of topic \"{topic}\" to {status}");
-      await _logger.Log(message);
+      await logger.Log(message);
 
-      await Honor.Utilities.SetHonor(topic, status, _configuration);
+      await Honor.Utilities.SetHonor(topic, status, configuration);
 
       await command.RespondAsync($"{topic}'s honor status has been set to {status}.", ephemeral: true);
       return;
@@ -283,12 +286,15 @@ namespace Worfbot
 
     private async Task HandleWeatherCommand(SocketSlashCommand command)
     {
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
+      var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+
       Weather.WeatherModels.Location? location = null;
 
       var zipCodeOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("zip-code"));
       if (zipCodeOption != null)
       {
-        location = await Weather.API.GetLocationFromZip(zipCodeOption.Value.ToString()!, _configuration, _logger);
+        location = await Weather.API.GetLocationFromZip(zipCodeOption.Value.ToString()!, configuration, logger);
       }
 
       var cityOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("city"));
@@ -297,7 +303,7 @@ namespace Worfbot
         var stateOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("state"));
         var countryOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("country"));
         string country = countryOption?.Value.ToString() ?? "US";
-        location = await Weather.API.GetLocationFromCityName(cityOption.Value.ToString()!, state: stateOption?.Value.ToString(), country: country, configuration: _configuration, logger: _logger);
+        location = await Weather.API.GetLocationFromCityName(cityOption.Value.ToString()!, state: stateOption?.Value.ToString(), country: country, configuration: configuration, logger: logger);
       }
 
       var latOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("latitude"));
@@ -326,9 +332,9 @@ namespace Worfbot
       units = unitsOption == null ? Weather.Units.Imperial : (Weather.Units)Convert.ToInt32(unitsOption.Value);
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleWeatherCommand), $"{command.User.Username} requested weather for location \"{location}\", units \"{units}\"");
-      await _logger.Log(message);
+      await logger.Log(message);
 
-      var prediction = await Weather.API.CheckWeather(location, units, _configuration, _logger);
+      var prediction = await Weather.API.CheckWeather(location, units, configuration, logger);
 
       bool isSimpleDisplay = false;
       var displayOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("simple-display"));
