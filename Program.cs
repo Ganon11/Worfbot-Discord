@@ -156,6 +156,12 @@ namespace Worfbot
             .AddChoice("Fahrenheit", 2)
             .AddChoice("Celsius", 3)
             .WithType(ApplicationCommandOptionType.Integer)
+          )
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("simple-display")
+            .WithDescription("Display weather as simple text. Default is false.")
+            .WithRequired(false)
+            .WithType(ApplicationCommandOptionType.Boolean)
           );
 
       try
@@ -324,13 +330,30 @@ namespace Worfbot
 
       var prediction = await Weather.API.CheckWeather(location, units, _configuration, _logger);
 
-      var embedBuilder = new EmbedBuilder()
-         .WithTitle($"Weather for {prediction.Location}")
-         .WithThumbnailUrl($"https://openweathermap.org/img/wn/{prediction.WeatherForecasts.First().IconCode}@2x.png")
-         .WithDescription(Weather.Formatting.FormatWeatherPrediction(prediction, units))
-         .WithCurrentTimestamp();
+      bool isSimpleDisplay = false;
+      var displayOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("simple-display"));
+      if (displayOption != null && bool.TryParse(displayOption.Value.ToString(), out bool parsedDisplay))
+      {
+        isSimpleDisplay = parsedDisplay;
+      }
 
-      await command.RespondAsync(embed: embedBuilder.Build());
+      if (isSimpleDisplay)
+      {
+        StringBuilder response = new();
+        response.AppendLine($"Weather for {prediction.Location}");
+        response.AppendLine(Weather.Formatting.FormatWeatherPrediction(prediction, units));
+        await command.RespondAsync(text: response.ToString());
+      }
+      else
+      {
+        var embedBuilder = new EmbedBuilder()
+          .WithTitle($"Weather for {prediction.Location}")
+          .WithThumbnailUrl($"https://openweathermap.org/img/wn/{prediction.WeatherForecasts.First().IconCode}@2x.png")
+          .WithDescription(Weather.Formatting.FormatWeatherPrediction(prediction, units))
+          .WithCurrentTimestamp();
+
+        await command.RespondAsync(embed: embedBuilder.Build());
+      }
 
       return;
     }
