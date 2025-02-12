@@ -5,7 +5,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Pluralize.NET;
 
 namespace Worfbot
 {
@@ -190,15 +189,6 @@ namespace Worfbot
       }
     }
 
-    private async Task<bool> IsPlural(string topic)
-    {
-      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
-      LogMessage message = new(LogSeverity.Debug, nameof(IsPlural), $"Checking pluralization of {topic}");
-      await logger.Log(message);
-      IPluralize pluralizer = new Pluralizer();
-      return pluralizer.IsPlural(topic);
-    }
-
     private async Task HandleHonorCommand(SocketSlashCommand command)
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
@@ -219,16 +209,7 @@ namespace Worfbot
       }
 
       var honor = await Honor.Utilities.DetermineHonor(topic, configuration, logger);
-      if (honor)
-      {
-        var verb = await IsPlural(topic) ? "have" : "has";
-        await command.RespondAsync($"{topic} {verb} honor.");
-      }
-      else
-      {
-        var verb = await IsPlural(topic) ? "are" : "is";
-        await command.RespondAsync($"{topic} {verb} without honor.");
-      }
+      await command.RespondAsync(Honor.Utilities.FormatHonorResponse(topic, honor));
 
       LogMessage message = new(LogSeverity.Info, nameof(HandleHonorCommand), $"{command.User.Username} requested honor status of topic \"{topic}\" (result is {honor})");
       await logger.Log(message);
