@@ -47,5 +47,23 @@ namespace Worfbot.Honor
       var database = new Database.Database(configuration);
       await database.SetHonorInDatabase(topic, status);
     }
+
+    private static bool IsPlural(string topic)
+    {
+      Pluralize.NET.IPluralize pluralizer = new Pluralize.NET.Pluralizer();
+      return pluralizer.IsPlural(topic);
+    }
+
+    public static string FormatHonorResponse(string topic, bool honor)
+    {
+      if (honor)
+      {
+        return $"{topic} {(IsPlural(topic) ? "have" : "has")} honor.";
+      }
+      else
+      {
+        return $"{topic} {(IsPlural(topic) ? "are" : "is")} without honor.";
+      }
+    }
   }
 }
