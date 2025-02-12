@@ -61,6 +61,7 @@ namespace Worfbot
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
 
+// #region /honor
       var honorCommand = new SlashCommandBuilder()
           .WithName("honor")
           .WithDescription("Checks whether the given topic is honorable.")
@@ -78,7 +79,9 @@ namespace Worfbot
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await logger.Log(message);
       }
+// #endregion 
 
+// #region /set-honor
       var setHonorCommand = new SlashCommandBuilder()
           .WithName("set-honor")
           .WithDescription("Informs Worfbot of the honorability of the topic.")
@@ -97,7 +100,9 @@ namespace Worfbot
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await logger.Log(message);
       }
+// #endregion
 
+// #region /weather
       var weatherCommand = new SlashCommandBuilder()
           .WithName("weather")
           .WithDescription("Asks Worfbot about the weather in a location.")
@@ -171,6 +176,35 @@ namespace Worfbot
         LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
         await logger.Log(message);
       }
+// #endregion
+
+// #region /anbo-jyutsu
+      var anboJyutsuCommand = new SlashCommandBuilder()
+          .WithName("anbo-jyutsu")
+          .WithDescription("Challenge Worfbot to a match of Anbo-Jyutsu. The ultimate evolution of the martial arts.")
+          .AddOption(new SlashCommandOptionBuilder()
+            .WithName("move")
+            .WithDescription("What move do you use?")
+            .WithRequired(true)
+            .AddChoice("Sweep the legs!", 1)
+            .AddChoice("Duck beneath the blow!", 2)
+            .AddChoice("Strike your foe!", 3)
+            .WithType(ApplicationCommandOptionType.Integer)
+          );
+
+      try
+      {
+        LogMessage message = new(LogSeverity.Info, nameof(UpdateSlashCommands), "Registering anbo-jyutsu command...");
+        await logger.Log(message);
+        await client.CreateGlobalApplicationCommandAsync(anboJyutsuCommand.Build());
+      }
+      catch (HttpException ex)
+      {
+        var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
+        LogMessage message = new(LogSeverity.Error, nameof(UpdateSlashCommands), json, ex);
+        await logger.Log(message);
+      }
+// #endregion
     }
 
     private async Task SlashCommandHandler(SocketSlashCommand command)
@@ -185,6 +219,9 @@ namespace Worfbot
           break;
         case "weather":
           await HandleWeatherCommand(command);
+          break;
+        case "anbo-jyutsu":
+          await HandleAnboJyutsuCommand(command);
           break;
       }
     }
@@ -342,6 +379,39 @@ namespace Worfbot
         await command.RespondAsync(embed: embedBuilder.Build());
       }
 
+      return;
+    }
+
+    private async Task HandleAnboJyutsuCommand(SocketSlashCommand command)
+    {
+      var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
+
+      var moveOption = command.Data.Options.FirstOrDefault(o => o.Name.Equals("move"));
+      if (moveOption == null)
+      {
+        await command.RespondAsync("You must be decisive in anbo-jyutsu! Make a move!", ephemeral: true);
+        return;
+      }
+
+      AnboJyutsu.Move playerMove = (AnboJyutsu.Move)Convert.ToInt32(moveOption.Value);
+      AnboJyutsu.Move myMove = AnboJyutsu.UltimateEvolutionInTheMartialArtsUtilities.GetRandomMove();
+      StringBuilder response = new();
+      response.AppendLine("Yoroshiku onegaishimasu!");
+      response.AppendLine($"You selected {playerMove.ToString()}, whereas I have selected {myMove.ToString()}.");
+      switch (AnboJyutsu.UltimateEvolutionInTheMartialArtsUtilities.Evaluate(playerMove, myMove))
+      {
+        case AnboJyutsu.Result.Tie:
+          response.AppendLine("It seems we are evenly matched!");
+          break;
+        case AnboJyutsu.Result.Victory:
+          response.AppendLine("You have defeated me!");
+          break;
+        case AnboJyutsu.Result.Loss:
+          response.AppendLine("Victory is mine!");
+          break;
+      }
+
+      await command.RespondAsync(response.ToString());
       return;
     }
   }
