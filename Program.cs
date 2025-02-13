@@ -50,10 +50,10 @@ namespace Worfbot
       client.Log += logger.Log;
       //client.Ready += RegisterCommands;
 
-      await interactionHandler.InitializeAsync();
-
       await client.LoginAsync(TokenType.Bot, configuration["TOKEN"]);
       await client.StartAsync();
+
+      await interactionHandler.InitializeAsync();
 
       await Task.Delay(Timeout.Infinite);
     }
