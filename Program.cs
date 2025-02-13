@@ -3,6 +3,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Worfbot.Interactions;
 
 namespace Worfbot
 {
@@ -29,6 +30,8 @@ namespace Worfbot
         .AddSingleton<Logging.ILogger>(new Logging.Logger(configuration["Logging:Severity"] ?? ""))
         .AddSingleton<DiscordSocketClient>()
         .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+        .AddSingleton<WorfbotInteractionHandler>()
+        .AddSingleton<WorfbotInteractionModule>()
         .BuildServiceProvider();
     }
 
@@ -39,20 +42,26 @@ namespace Worfbot
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
       var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+      var interactionService = _serviceProvider.GetRequiredService<InteractionService>();
+      var interactionHandler = _serviceProvider.GetRequiredService<WorfbotInteractionHandler>();
+
+      interactionService.Log += logger.Log;
 
       client.Log += logger.Log;
-      client.Ready += RegisterCommands;
+      //client.Ready += RegisterCommands;
+
+      await interactionHandler.InitializeAsync();
 
       await client.LoginAsync(TokenType.Bot, configuration["TOKEN"]);
       await client.StartAsync();
 
-      await Task.Delay(-1);
+      await Task.Delay(Timeout.Infinite);
     }
 
-    private async Task RegisterCommands()
-    {
-      var interactionService = _serviceProvider.GetRequiredService<InteractionService>();
-      await interactionService.RegisterCommandsGloballyAsync();
-    }
+    // private async Task RegisterCommands()
+    // {
+    //   var interactionService = _serviceProvider.GetRequiredService<InteractionService>();
+    //   await interactionService.RegisterCommandsGloballyAsync();
+    // }
   }
 }

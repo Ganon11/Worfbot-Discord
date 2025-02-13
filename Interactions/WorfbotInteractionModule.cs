@@ -4,9 +4,9 @@ using Discord.Interactions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Worfbot.InteractionModule
+namespace Worfbot.Interactions
 {
-  public class WorfbotInteractionModule : InteractionModuleBase
+  public class WorfbotInteractionModule : InteractionModuleBase<SocketInteractionContext>
   {
     private readonly IServiceProvider _serviceProvider;
 
@@ -15,7 +15,13 @@ namespace Worfbot.InteractionModule
       _serviceProvider = serviceProvider;
     }
 
-    [SlashCommand("honor", "Checks whether the given topic is honorable.")]
+    [SlashCommand("echo", "Echo an input")]
+    public async Task Echo(string input)
+    {
+      await RespondAsync(input);
+    }
+
+    [SlashCommand("honor-int", "Checks whether the given topic is honorable.")]
     public async Task HonorCommand(string topic)
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
@@ -30,7 +36,7 @@ namespace Worfbot.InteractionModule
       return;
     }
 
-    [SlashCommand("set-honor", "Informs Worfbot of the honorability of the topic.")]
+    [SlashCommand("set-honor-int", "Informs Worfbot of the honorability of the topic.")]
     public async Task SetHonorCommand(string topic, bool status)
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
@@ -45,7 +51,7 @@ namespace Worfbot.InteractionModule
       return;
     }
 
-    [SlashCommand("weather", "Asks Worfbot about the weather in a location.")]
+    [SlashCommand("weather-int", "Asks Worfbot about the weather in a location.")]
     public async Task WeatherCommand(double? latitude = null, double? longitude = null, string? zipCode = null,
       string? city = null, string? state = null, string? country = null, Weather.Units units = Weather.Units.Imperial,
       bool simpleDisplay = false)
@@ -109,7 +115,7 @@ namespace Worfbot.InteractionModule
       return;
     }
 
-    [SlashCommand("anbo-jyutsu", "Challenge Worfbot to a match of Anbo-Jyutsu. The ultimate evolution of the martial arts.")]
+    [SlashCommand("anbo-jyutsu-int", "Challenge Worfbot to a match of Anbo-Jyutsu. The ultimate evolution of the martial arts.")]
     public async Task AnboJyutsuCommand(AnboJyutsu.Move move)
     {
       AnboJyutsu.Move myMove = AnboJyutsu.UltimateEvolutionInTheMartialArtsUtilities.GetRandomMove();
