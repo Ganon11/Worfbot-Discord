@@ -35,9 +35,9 @@ namespace Worfbot
         .BuildServiceProvider();
     }
 
-    public static Task Main(string[] args) => new Program().MainAsync(args);
+    public static Task Main(string[] args) => new Program().MainAsync();
 
-    public async Task MainAsync(string[] args)
+    public async Task MainAsync()
     {
       var client = _serviceProvider.GetRequiredService<DiscordSocketClient>();
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
@@ -48,7 +48,6 @@ namespace Worfbot
       interactionService.Log += logger.Log;
 
       client.Log += logger.Log;
-      //client.Ready += RegisterCommands;
 
       await client.LoginAsync(TokenType.Bot, configuration["TOKEN"]);
       await client.StartAsync();
@@ -57,11 +56,5 @@ namespace Worfbot
 
       await Task.Delay(Timeout.Infinite);
     }
-
-    // private async Task RegisterCommands()
-    // {
-    //   var interactionService = _serviceProvider.GetRequiredService<InteractionService>();
-    //   await interactionService.RegisterCommandsGloballyAsync();
-    // }
   }
 }
