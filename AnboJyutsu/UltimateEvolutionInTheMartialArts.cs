@@ -1,9 +1,14 @@
+using Discord.Interactions;
+
 namespace Worfbot.AnboJyutsu
 {
   public enum Move
   {
+    [ChoiceDisplay("Sweep the leg!")]
     Sweep = 1,
+    [ChoiceDisplay("Duck beneath the blow!")]
     Duck = 2,
+    [ChoiceDisplay("Strike your foe!")]
     Strike = 3
   }
 
