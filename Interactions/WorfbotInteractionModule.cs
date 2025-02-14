@@ -22,7 +22,9 @@ namespace Worfbot.Interactions
     }
 
     [SlashCommand("honor", "Checks whether the given topic is honorable.")]
-    public async Task HonorCommand(string topic)
+    public async Task HonorCommand(
+      [Summary(description: "The subject whose honor you want to determine")] string topic
+    )
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
       var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
@@ -37,7 +39,10 @@ namespace Worfbot.Interactions
     }
 
     [SlashCommand("set-honor", "Informs Worfbot of the honorability of the topic.")]
-    public async Task SetHonorCommand(string topic, bool status)
+    public async Task SetHonorCommand(
+      [Summary(description: "The subject whose honor you want to set")] string topic,
+      [Summary(description: "True if the subject is honorable; otherwise, false")] bool status
+    )
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
       var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
@@ -52,9 +57,16 @@ namespace Worfbot.Interactions
     }
 
     [SlashCommand("weather", "Asks Worfbot about the weather in a location.")]
-    public async Task WeatherCommand(double? latitude = null, double? longitude = null, string? zipCode = null,
-      string? city = null, string? state = null, string? country = null, Weather.Units units = Weather.Units.Imperial,
-      bool simpleDisplay = false)
+    public async Task WeatherCommand(
+      [Summary(description: "Latitude, as a signed floating-point decimal")] double? latitude = null,
+      [Summary(description: "Longitude, as a signed floating-point decimal")] double? longitude = null,
+      [Summary(description: "US ZIP code of location")] string? zipCode = null,
+      [Summary(description: "City Name")] string? city = null,
+      [Summary(description: "State (2-Character String)")] string? state = null,
+      [Summary(description: "Country Code (2-Character String, default US)")] string? country = null,
+      [Summary(description: "Which units to use? Default is Fahrenheit.")] Weather.Units units = Weather.Units.Imperial,
+      [Summary(description: "Display weather as simple text. Default is false.")] bool simpleDisplay = false
+    )
     {
       var logger = _serviceProvider.GetRequiredService<Logging.ILogger>();
       var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
@@ -116,7 +128,9 @@ namespace Worfbot.Interactions
     }
 
     [SlashCommand("anbo-jyutsu", "Challenge Worfbot to a match of Anbo-Jyutsu. The ultimate evolution of the martial arts.")]
-    public async Task AnboJyutsuCommand(AnboJyutsu.Move move)
+    public async Task AnboJyutsuCommand(
+      [Summary(description: "What move do you use?")] AnboJyutsu.Move move
+    )
     {
       AnboJyutsu.Move myMove = AnboJyutsu.UltimateEvolutionInTheMartialArtsUtilities.GetRandomMove();
       StringBuilder response = new();
